@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-
-const ALLOWED_TYPES = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-];
-
-const MAX_SIZE = 10 * 1024 * 1024;
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "@/lib/validation";
 
 export async function POST(request: Request) {
   try {
@@ -29,16 +17,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Aucun fichier fourni" }, { status: 400 });
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    if (!ALLOWED_MIME_TYPES.includes(file.type as any)) {
       return NextResponse.json(
         { error: "Type de fichier non autorisé. Formats acceptés : PDF, DOC, DOCX, PPT, PPTX, JPG, PNG, WEBP" },
         { status: 400 }
       );
     }
 
-    if (file.size > MAX_SIZE) {
+    if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: "Le fichier est trop volumineux. Taille maximale : 10 Mo" },
+        { error: "Le fichier est trop volumineux. Taille maximale : 50 Mo" },
         { status: 400 }
       );
     }

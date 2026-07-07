@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { Resend } from "resend";
 import type { Role } from "@prisma/client";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { registerSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
   try {
@@ -11,27 +12,21 @@ export async function POST(request: Request) {
     const rateCheck = checkRateLimit(ip);
     if (!rateCheck.allowed) {
       return NextResponse.json(
-        { error: "Trop de tentatives. Réessayez dans une minute." },
+        { error: "Trop de tentatives. R\u00e9essayez dans une minute." },
         { status: 429 }
       );
     }
 
-    const { firstName, lastName, email, password, establishmentSlug, classId, classRepCode } =
-      await request.json();
-
-    if (!firstName || !lastName || !email || !password || !establishmentSlug || !classId) {
+    const body = await request.json();
+    const parsed = registerSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Tous les champs sont requis" },
+        { error: parsed.error.issues[0].message },
         { status: 400 }
       );
     }
 
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: "Le mot de passe doit contenir au moins 8 caracteres" },
-        { status: 400 }
-      );
-    }
+    const { firstName, lastName, email, password, establishmentSlug, classId, classRepCode } = parsed.data;
 
     const establishment = await prisma.establishment.findUnique({
       where: { slug: establishmentSlug },
@@ -39,12 +34,11 @@ export async function POST(request: Request) {
 
     if (!establishment) {
       return NextResponse.json(
-        { error: "Etablissement non trouve" },
+        { error: "Etablissement non trouv\u00e9" },
         { status: 404 }
       );
     }
 
-    // Verifier que la classe est dans le registre de l'etablissement
     const registryEntry = await prisma.classRegistry.findUnique({
       where: {
         establishmentId_classId: {
@@ -58,20 +52,19 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Cette classe n'est pas enregistree dans votre etablissement. Veuillez contacter l'administration.",
+            "Cette classe n'est pas enregistr\u00e9e dans votre \u00e9tablissement. Veuillez contacter l'administration.",
         },
         { status: 403 }
       );
     }
 
-    // Verifier si l'email existe deja
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "Un compte avec cet email existe deja" },
+        { error: "Un compte avec cet email existe d\u00e9j\u00e0" },
         { status: 409 }
       );
     }
@@ -117,7 +110,7 @@ export async function POST(request: Request) {
       const { error } = await resend.emails.send({
         from: `ShareSchool CI <${from}>`,
         to: [email],
-        subject: "Code de verification ShareSchool",
+        subject: "Code de v\u00e9rification ShareSchool",
         html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#0f1a2e;border-radius:16px;border:1px solid rgba(255,255,255,0.1)"><div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#1e3a5f,#2d5a8e);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:white;font-weight:bold;font-size:20px">SC</div><h1 style="color:white;font-size:20px;text-align:center;margin-bottom:8px">Bienvenue sur ShareSchool</h1><p style="color:rgba(255,255,255,0.6);text-align:center;font-size:14px;margin-bottom:24px">Utilisez ce code pour activer votre compte</p><div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:24px;text-align:center"><span style="font-size:36px;font-weight:bold;color:white;letter-spacing:8px;font-family:monospace">${verificationCode}</span></div><p style="color:rgba(255,255,255,0.4);text-align:center;font-size:12px;margin-top:24px">Ce code expirera dans 15 minutes.</p></div>`,
       });
       if (error) throw error;
@@ -128,7 +121,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        message: "Compte cree ! Verifiez votre email pour activer votre compte.",
+        message: "Compte cr\u00e9\u00e9 ! V\u00e9rifiez votre email pour activer votre compte.",
         requiresVerification: true,
         email,
         devCode: process.env.NODE_ENV !== "production" ? verificationCode : undefined,
