@@ -1,0 +1,302 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  CLASS_REP
+  TEACHER
+  ADMIN
+}
+
+enum ResourceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Establishment {
+  id             String   @id @default(cuid())
+  name           String   @unique
+  slug           String   @unique
+  domain         String?
+  contactEmail   String?
+  contactPhone   String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  classRegistries ClassRegistry[]
+  users          User[]
+  subjects       Subject[]
+}
+
+model ClassRegistry {
+  id              String        @id @default(cuid())
+  establishmentId String
+  establishment   Establishment @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  classId         String
+  classe          Classe        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+
+  @@unique([establishmentId, classId])
+  @@index([establishmentId])
+  @@index([classId])
+}
+
+model Level {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  order     Int
+  createdAt DateTime @default(now())
+
+  series    Series[]
+  classes   Classe[]
+  subjects  Subject[]
+  chatRooms ChatRoom[]
+}
+
+model Series {
+  id        String   @id @default(cuid())
+  name      String
+  levelId   String
+  level     Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  classes  Classe[]
+  subjects Subject[]
+
+  @@unique([name, levelId])
+  @@index([levelId])
+}
+
+model Classe {
+  id        String   @id @default(cuid())
+  name      String
+  levelId   String
+  level     Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  seriesId  String?
+  series    Series?  @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  registries     ClassRegistry[]
+  users          User[]
+  resources      Resource[]
+}
+
+model User {
+  id               String        @id @default(cuid())
+  email            String        @unique
+  passwordHash     String
+  firstName        String
+  lastName         String
+  role             Role          @default(STUDENT)
+  establishmentId  String
+  establishment    Establishment @relation(fields: [establishmentId], references: [id])
+  classId          String?
+  classe           Classe?       @relation(fields: [classId], references: [id])
+  classRepCode     String?
+  isActive         Boolean       @default(true)
+  emailVerified    DateTime?
+  verificationCode     String?
+  verificationCodeExpires DateTime?
+  totalXP          Int           @default(0)
+  level            Int           @default(1)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  resources        Resource[]
+  validations      Validation[]
+  quizAttempts     QuizAttempt[]
+  badges           UserBadge[]
+  xpTransactions   XPTransaction[]
+  chatMessages     ChatMessage[]
+
+  @@index([email])
+  @@index([establishmentId])
+  @@index([classId])
+  @@index([role])
+}
+
+model Subject {
+  id              String        @id @default(cuid())
+  name            String
+  establishmentId String
+  establishment   Establishment @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  levelId         String?
+  level           Level?        @relation(fields: [levelId], references: [id], onDelete: SetNull)
+  seriesId        String?
+  series          Series?       @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  isFirstCycle    Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  resources Resource[]
+  quizzes   Quiz[]
+
+  @@index([establishmentId])
+  @@index([levelId])
+}
+
+model Resource {
+  id              String         @id @default(cuid())
+  title           String
+  description     String?
+  type            String         @default("PDF")
+  fileUrl         String
+  fileSize        Int?
+  mimeType        String?
+  status          ResourceStatus @default(PENDING)
+  authorId        String
+  author          User           @relation(fields: [authorId], references: [id])
+  establishmentId String
+  classId         String?
+  classe          Classe?        @relation(fields: [classId], references: [id])
+  subjectId       String?
+  subject         Subject?       @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  isShared        Boolean        @default(false)
+  sharedWithClassIds String?      @default("")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  validations Validation[]
+
+  @@index([status])
+  @@index([authorId])
+  @@index([establishmentId])
+  @@index([classId])
+  @@index([subjectId])
+  @@index([type])
+}
+
+model Validation {
+  id         String         @id @default(cuid())
+  resourceId String
+  resource   Resource       @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  validatorId String
+  validator  User           @relation(fields: [validatorId], references: [id])
+  action     ResourceStatus
+  comment    String?
+  createdAt  DateTime       @default(now())
+
+  @@index([resourceId])
+  @@index([validatorId])
+}
+
+model Quiz {
+  id             String        @id @default(cuid())
+  title          String
+  description    String?
+  subjectId      String?
+  establishmentId String
+  createdById    String
+  isGeneralCulture Boolean     @default(false)
+  timeLimit      Int?
+  difficulty     String        @default("EASY")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  subject        Subject?      @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  questions      QuizQuestion[]
+  attempts       QuizAttempt[]
+}
+
+model QuizQuestion {
+  id        String @id @default(cuid())
+  quizId    String
+  quiz      Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question  String
+  options   String
+  correct   Int
+  order     Int
+  createdAt DateTime @default(now())
+
+  @@index([quizId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  score     Int
+  maxScore  Int
+  answers   String
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+
+  @@index([quizId])
+  @@index([userId])
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  iconUrl     String?
+  criteria    String
+  xpReward    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  users UserBadge[]
+}
+
+model UserBadge {
+  id      String   @id @default(cuid())
+  userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId String
+  badge   Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+}
+
+model XPTransaction {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  points    Int
+  action    String
+  description String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ChatRoom {
+  id              String        @id @default(cuid())
+  name            String
+  levelId         String?
+  level           Level?        @relation(fields: [levelId], references: [id], onDelete: SetNull)
+  establishmentId String
+  createdAt       DateTime      @default(now())
+
+  messages ChatMessage[]
+
+  @@index([levelId])
+  @@index([establishmentId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  roomId    String
+  room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([roomId])
+  @@index([createdAt])
+}
