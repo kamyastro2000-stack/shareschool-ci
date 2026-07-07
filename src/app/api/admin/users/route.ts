@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { Resend } from "resend";
+import { sendVerificationCode } from "@/lib/email";
 
 export async function PATCH(request: Request) {
   try {
@@ -43,19 +43,7 @@ export async function PATCH(request: Request) {
         data: { verificationCode: code, verificationCodeExpires: expires },
       });
 
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = process.env.RESEND_FROM || "noreply@shareschool.ci";
-
-      if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "re_xxxxx") {
-        await resend.emails.send({
-          from: `ShareSchool CI <${from}>`,
-          to: [target.email],
-          subject: "Code de vérification ShareSchool",
-          html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#0f1a2e;border-radius:16px;border:1px solid rgba(255,255,255,0.1)"><div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#1e3a5f,#2d5a8e);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:white;font-weight:bold;font-size:20px">SC</div><h1 style="color:white;font-size:20px;text-align:center;margin-bottom:8px">Code de vérification</h1><p style="color:rgba(255,255,255,0.6);text-align:center;font-size:14px;margin-bottom:24px">Utilisez ce code pour activer votre compte ShareSchool</p><div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:24px;text-align:center"><span style="font-size:36px;font-weight:bold;color:white;letter-spacing:8px;font-family:monospace">${code}</span></div><p style="color:rgba(255,255,255,0.4);text-align:center;font-size:12px;margin-top:24px">Ce code expirera dans 15 minutes.</p></div>`,
-        });
-      } else {
-        console.log("EMAIL SIMULÉ - Code:", code);
-      }
+      await sendVerificationCode(target.email, code, target.firstName);
 
       return NextResponse.json({ message: "Code renvoyé" });
     }

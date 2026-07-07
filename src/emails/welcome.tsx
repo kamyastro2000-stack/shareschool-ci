@@ -8,6 +8,7 @@ import {
   Tailwind,
   Section,
   Heading,
+  Hr,
 } from "@react-email/components";
 
 interface WelcomeEmailProps {
@@ -21,47 +22,74 @@ export default function WelcomeEmail({
   establishmentName,
   className,
 }: WelcomeEmailProps) {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
   return (
     <Html>
       <Preview>Bienvenue sur ShareSchool CI, {firstName} !</Preview>
       <Tailwind>
-        <Body className="bg-[#1e1b4b] font-sans">
-          <Container className="mx-auto py-12 px-4">
-            <Section className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-              <Heading className="text-3xl font-bold text-white text-center mb-6">
-                Bienvenue sur ShareSchool CI 🎉
-              </Heading>
+        <Body className="bg-[#0f172a] font-sans">
+          <Container className="mx-auto py-12 px-4 max-w-[480px]">
+            <Section className="bg-[#1e293b] rounded-2xl p-8 border border-[#334155] shadow-2xl">
+              <Section className="text-center mb-6">
+                <Section className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#6366f1] to-[#f97316] flex items-center justify-center mx-auto mb-4">
+                  <Text className="text-white font-bold text-xl m-0">SC</Text>
+                </Section>
+                <Heading className="text-2xl font-bold text-white m-0">
+                  Bienvenue sur ShareSchool 🎉
+                </Heading>
+              </Section>
 
-              <Text className="text-white/80 text-lg mb-4">
+              <Text className="text-[#94a3b8] text-base leading-relaxed mb-2">
                 Bonjour {firstName},
               </Text>
 
-              <Text className="text-white/70 text-base leading-relaxed mb-6">
-                Ton compte a été créé avec succès ! Tu fais maintenant partie de
-                l&apos;établissement <strong className="text-white">{establishmentName}</strong>,
-                dans la classe <strong className="text-white">{className}</strong>.
+              <Text className="text-[#94a3b8] text-base leading-relaxed mb-6">
+                Ton email a été vérifié avec succès ! Tu fais maintenant partie
+                de l&apos;établissement{" "}
+                <Text className="text-white font-semibold inline">
+                  {establishmentName}
+                </Text>
+                , dans la classe{" "}
+                <Text className="text-white font-semibold inline">
+                  {className}
+                </Text>
+                .
               </Text>
 
-              <Text className="text-white/70 text-base leading-relaxed mb-6">
-                Tu peux dès maintenant te connecter et commencer à explorer les
-                ressources pédagogiques partagées par tes camarades et professeurs.
+              <Text className="text-[#94a3b8] text-base leading-relaxed mb-6">
+                Voici ce qui t&apos;attend :
               </Text>
 
-              <Section className="text-center mb-8">
+              <Section className="space-y-3 mb-6">
+                {[
+                  "📚 Consulte et télécharge les ressources de ta classe",
+                  "✍️ Participe aux quiz et teste tes connaissances",
+                  "⭐ Gagne de l'XP et débloque des badges",
+                  "💬 Discute avec tes camarades dans le chat",
+                ].map((item, i) => (
+                  <Section key={i} className="bg-[#0f172a] rounded-lg px-4 py-3 border border-[#334155]">
+                    <Text className="text-[#cbd5e1] text-sm m-0">{item}</Text>
+                  </Section>
+                ))}
+              </Section>
+
+              <Section className="text-center mb-6">
                 <Link
-                  href={process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}
-                  className="inline-block px-8 py-4 rounded-xl text-white font-semibold text-base"
+                  href={baseUrl + "/dashboard"}
+                  className="inline-block px-8 py-4 rounded-xl text-white font-semibold text-base no-underline"
                   style={{
-                    background: "linear-gradient(135deg, #1e3a5f, #2d5a8e)",
+                    background: "linear-gradient(135deg, #6366f1, #4f46e5)",
                   }}
                 >
-                  Accéder à mon espace
+                  Accéder à mon tableau de bord
                 </Link>
               </Section>
 
-              <Text className="text-white/50 text-sm text-center">
-                ShareSchool CI — La plateforme de partage pédagogique pour les
-                élèves ivoiriens
+              <Hr className="border-[#334155] mb-6" />
+
+              <Text className="text-[#64748b] text-xs text-center m-0">
+                ShareSchool CI — La plateforme de partage pédagogique pour les élèves ivoiriens
               </Text>
             </Section>
           </Container>

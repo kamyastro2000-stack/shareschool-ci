@@ -1,6 +1,6 @@
 # SHARESCHOOL CI — MÉMOIRE COMPLÈTE DU PROJET
 
-> Fichier mémoire généré le 04/07/2026 — Dernière mise à jour : 05/07/2026 (22h)
+> Fichier mémoire généré le 04/07/2026 — Dernière mise à jour : 07/07/2026
 > À lire en début de session pour tout retrouver.
 
 ---
@@ -17,11 +17,13 @@
 - **Refonte design complète (05/07/2026)** : toutes les pages refaites avec design glassmorphisme enrichi, logo créé, navbar refaite
 - **Refonte style premium QClay (05/07/2026 soir)** : FloatingElements (livres/chiffres/diplômes animés en fond), bento grid, glows, mega-title, orbes, stat cards, landing refaite, dashboard refait, globals.css enrichi
 - **Roadmap de finalisation** : `D:\Mon Projet\shareschool_Projet\ROADMAP-PRODUCTION.md`
-- **Stack** : Next.js 16.2.10 (App Router) + TypeScript + Prisma 6 (SQLite → MySQL en prod) + Tailwind CSS v4 + Framer Motion
+- **Stack** : Next.js 16.2.10 (App Router) + TypeScript + Prisma 6 + MySQL (Aiven) + Tailwind CSS v4 + Framer Motion + React Email
 - **Auth** : NextAuth v5 (beta.31) — Credentials provider, JWT sessions
 - **Email** : Resend (clé API active, from `onboarding@resend.dev` → domaine perso en prod)
 - **Upload** : Cloudinary (cloud `l5duachn`)
-- **Base de données** : SQLite (`file:./dev.db`) en dev — MySQL prévue en prod
+- **Base de données** : MySQL (Aiven) — SQLite supprimée
+- **Git** : `https://github.com/kamyastro2000-stack/shareschool-ci.git` (branch `main`)
+- **Déploiement** : Vercel
 
 ---
 
@@ -31,11 +33,12 @@
 npm run dev                     # Lancer le serveur de dev (http://localhost:3000)
 npm run build                   # Build production
 npm run lint                    # Linter ESLint
+npm test                        # Tests Vitest (18 tests)
 npx prisma generate             # Regénérer Prisma Client
 npx prisma db push              # Synchroniser le schéma avec la BDD
 npx prisma db seed              # Réinitialiser les données de test
 npx prisma db push --force-reset && npx prisma db seed  # Reset complet
-npm run db:reset                # (si défini dans package.json)
+npm run db:reset                # Reset BDD + seed
 ```
 
 ---
@@ -170,6 +173,10 @@ npm run db:reset                # (si défini dans package.json)
 | `ErrorMessage` | `src/components/ErrorMessage.tsx` |
 | `SuccessMessage` | `src/components/SuccessMessage.tsx` |
 | `FloatingElements` | `src/components/FloatingElements.tsx` (30 icônes scolaires animées en fond : livres, diplômes, crayons, atomes, chiffres/lettres, 5 animations différentes) |
+| `VerificationCodeEmail` | `src/emails/verification-code.tsx` (code à 6 chiffres, React Email, dark mode) |
+| `WelcomeEmail` | `src/emails/welcome.tsx` (bienvenue après activation, fonctionnalités, CTA) |
+| `ResourceNotificationEmail` | `src/emails/resource-notification.tsx` (notification approbation/refus avec commentaire) |
+| `Service email` | `src/lib/email.tsx` (centralisation Resend + React Email, 4 fonctions exportées) |
 
 ---
 
@@ -192,9 +199,13 @@ Fichier : `src/app/globals.css`
 
 ## 8. SÉCURITÉ
 
-- **Middleware** (`src/middleware.ts`) : redirige non-auth vers `/login`, bloque non-ADMIN sur `/admin`
+- **Middleware** (`src/middleware.ts`) : redirige non-auth vers `/login`, bloque non-ADMIN sur `/admin` (déprécié dans Next 16 → migrer vers `proxy`)
 - **Permissions** vérifiées côté serveur dans chaque API route
-- **Upload Cloudinary** : types MIME autorisés, taille max (configuré côté client)
+- **Upload Cloudinary** : types MIME autorisés, taille max (configuré côté client + serveur via validation.ts)
+- **Rate limiting** : `src/lib/rate-limit.ts` — limite les tentatives de connexion, inscriptions, uploads
+- **Validation Zod** : `src/lib/validation.ts` — schémas de validation pour inputs (email, password, register, login)
+- **Security headers** : Content-Security-Policy, X-Frame-Options, Strict-Transport-Security
+- **Timer quiz côté serveur** : durée vérifiée côté serveur au submit (en plus du timer client)
 - **Cloisonnement ressources** : élève voit sa classe ; Terminale voit toutes les séries de Terminale
 - **Cloisonnement chat** : accès vérifié par `LevelAccess` + levelId du salon
 - **Registre** : bloqué à la racine (pas d'inscription si classe absente)
@@ -243,14 +254,15 @@ Badges : 10 badges (Premiers pas, Collectionneur, Expert quiz, etc.)
 - [x] **Refonte design (05/07/2026)** : toutes les pages refaites (landing, auth, dashboard, admin, profil, classement, chat, quiz liste, quiz [id], quiz create, quiz results) + Logo + Navbar + ResourceCard + UploadModal
 - [x] **Refonte style premium QClay (05/07/2026 soir)** : FloatingElements (livres/chiffres/diplômes animés en fond), bento grid, glows, mega-title, orbes, stat cards, landing refaite, dashboard refait, globals.css enrichi
 - [x] **Finalisation landing (05/07/2026 soir)** : Hero remplacé — image Gemini (`vozoydvozoydvozo.png`) avec animations d'entrée, dégradé cinématographique, barre d'info superposée ; Navbar affiche désormais le logo sur la page d'accueil (au lieu de `return null`)
-- [ ] **Phase 6** — Production : voir `ROADMAP-PRODUCTION.md`
+- [x] **Phase 6 — Fondations (07/07/2026)** : Git + GitHub (remote, 5 commits), MySQL Aiven (migration, seed, SQLite supprimée), Tests Vitest (18 tests, 3 fichiers), Rate limiting, validation Zod, security headers, timer quiz serveur
+- [ ] **Phase 7** — Production (Paiement, déploiement final, légal, monitoring) : voir `ROADMAP-PRODUCTION.md`
 
 ---
 
 ## 11. DÉCISIONS TECHNIQUES
 
 1. **Next.js plutôt que React+Vite+Express** — un seul projet, déploiement Vercel simplifié, API routes intégrées
-2. **Prisma 6** — SQLite en dev, MySQL prévu en prod
+2. **Prisma 6** — MySQL (Aiven) en dev et prod, SQLite supprimée
 3. **NextAuth v5** — moderne, JWT natif, PrismaAdapter
 4. **Cloudinary** (pas upload local) — stockage cloud, upload API migré, suppression auto
 5. **Options JSON dans QuizQuestion** — flexible sans table de jointure supplémentaire
@@ -262,6 +274,13 @@ Badges : 10 badges (Premiers pas, Collectionneur, Expert quiz, etc.)
 11. **Auto-envoi du code vérification** — déclenché à l'arrivée sur `/verify-email`
 12. **Logo texte SVG** — icône graduation + dégradé violet/orange, pas d'image uploadée
 13. **Hooks toujours avant return conditionnel** — bug React évité dans Navbar (useEffect avant le `if`)
+14. **MySQL Aiven** — base de données distante, plus de SQLite locale
+15. **Rate limiting** — implémenté dans `src/lib/rate-limit.ts` avec Map en mémoire
+16. **Validation Zod** — tous les inputs vérifiés côté serveur via `src/lib/validation.ts`
+17. **Security headers** — configurés via Next.js dans `next.config.ts`
+18. **Tests Vitest** — 18 tests unitaires (xp, cloudinary, rate-limit)
+19. **GitHub** — dépôt `kamyastro2000-stack/shareschool-ci`, 5 commits, branch `main`
+20. **Déploiement Vercel** — en ligne, middleware optimisé pour Vercel
 
 ---
 
@@ -411,14 +430,14 @@ Voir le fichier complet : `ROADMAP-PRODUCTION.md`
 
 ### Résumé des priorités
 
-1. **Fondations** : Git + GitHub, MySQL, Tests
-2. **Paiement** : Stripe, abonnements, dashboard client
-3. **Mise en ligne** : Déploiement, domaine, email pro, SSL
-4. **Légal** : CGU/CGV, RGPD, cookies, mentions légales
-5. **Sécurité** : Rate limiting, validation, headers, timer quiz serveur
-6. **Monitoring** : Sentry, Analytics, logs, favicon, SEO
-7. **CI/CD** : GitHub Actions, backup BDD
-8. **Finitions** : Landing page pro, logo, 404, accessibilité
+- [x] **Fondations** : Git + GitHub, MySQL (Aiven), Tests (18 tests)
+- [x] **Sécurité** : Rate limiting, validation Zod, security headers, timer quiz serveur
+- [x] **Mise en ligne** : Déploiement Vercel effectué
+- [ ] **Paiement** : Stripe, abonnements, dashboard client
+- [ ] **Légal** : CGU/CGV, RGPD, cookies, mentions légales
+- [ ] **Monitoring** : Sentry, Analytics, logs, favicon, SEO
+- [ ] **CI/CD** : GitHub Actions, backup BDD
+- [ ] **Finitions** : Landing page pro, logo, 404, accessibilité
 
 ---
 
@@ -427,17 +446,28 @@ Voir le fichier complet : `ROADMAP-PRODUCTION.md`
 - Le middleware est déprécié dans Next.js 16 → migrer vers `proxy`
 - `package.json#prisma` est déprécié → migrer vers `prisma.config.ts` (quand Prisma 7 sera stable)
 - Cloudinary configuré dans `.env` et `src/lib/cloudinary.ts`
-- `.env` contient des secrets (Resend, Cloudinary, NEXTAUTH_SECRET) — **ne pas commit**
+- `.env` contient des secrets (Resend, Cloudinary, NEXTAUTH_SECRET, DATABASE_URL) — **ne pas commit**
 - `clsx` + `tailwind-merge` installés — utiliser `cn()` de `@/lib/utils` pour les classNames Tailwind
 - Les types NextAuth sont complétés (`auth-types.ts`) — plus besoin de `as any` dans les callbacks
-- Le build compile 39 routes sans erreur
+- Le build compile 38 routes sans erreur
 - Le style QClay a été appliqué : bento grid, glows, mega-title, FloatingElements (30 icônes scolaires animées), stat cards, premium cards, orbes
 - `FloatingElements.tsx` utilise 5 keyframes CSS (`fe-float-0` à `fe-float-4`) pour des mouvements variés des icônes en fond
 - Le layout intègre `FloatingElements` dans le body avec `position: fixed; pointer-events: none`
-- Le temps des quiz est géré côté client (timer JS) → en prod, ajouter vérification côté serveur
+- Le temps des quiz est vérifié côté serveur au submit (timer serveur actif)
+- Rate limiting actif pour login, register, upload (Map en mémoire)
+- Tests : 3 fichiers, 18 tests (xp, cloudinary, rate-limit) — `npm test`
 - Mode production : `npm run build && npm start`
 - NEXTAUTH_SECRET à changer en production
-- Domaine personnalisé Resend à configurer pour la production
+- Domaine personnalisé Resend à configurer pour la production (`RESEND_FROM` dans `.env`)
+- Système email centralisé : `src/lib/email.tsx` + 3 templates React Email dans `src/emails/`
+- Templates email professionnels avec `@react-email/components` et Tailwind (rendu → HTML inline)
+- Email de bienvenue envoyé automatiquement après vérification du compte
+- Notification email envoyée à l'auteur quand sa ressource est approuvée/refusée
+- Mode simulation : si `RESEND_API_KEY` est manquant ou `re_xxxxx`, les emails sont loggés dans la console
+- En dev, le code de vérification est aussi retourné dans la réponse API (`devCode`)
+- Base de données : MySQL Aiven (plus de SQLite)
+- Déploiement : Vercel (automatique depuis GitHub)
+- GitHub : `https://github.com/kamyastro2000-stack/shareschool-ci`
 
 ---
 
@@ -465,7 +495,15 @@ D:\Mon Projet\shareschool_Projet\
     │   ├── auth-types.ts          # Augmentation de types NextAuth
     │   ├── cloudinary.ts          # Upload/delete Cloudinary
     │   ├── xp.ts                  # Système XP + badges (awardXP, getLevel, etc.)
-    │   └── utils.ts               # Utilitaires (cn, etc.)
+    │   ├── xp-client.ts           # Utilitaires XP côté client
+    │   ├── utils.ts               # Utilitaires (cn, etc.)
+    │   ├── validation.ts          # Schémas Zod (email, password, register, login, MIME types)
+    │   ├── rate-limit.ts          # Rate limiting (connexion, inscription, upload)
+    │   └── email.tsx              # Service email centralisé (Resend + React Email)
+    ├── emails/
+    │   ├── verification-code.tsx  # Template code à 6 chiffres
+    │   ├── welcome.tsx            # Template bienvenue après activation
+    │   └── resource-notification.tsx # Template notification approbation/refus
     ├── components/
     │   ├── Navbar.tsx
     │   ├── Providers.tsx

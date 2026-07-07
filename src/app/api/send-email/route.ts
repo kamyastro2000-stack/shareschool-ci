@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendRawEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -14,30 +12,16 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === "re_xxxxx") {
-      console.log("EMAIL SIMULÉ:", { to, subject });
-      return NextResponse.json({
-        message: "Email simulé (clé API non configurée)",
-        to,
-        subject,
-      });
+    const sent = await sendRawEmail(to, subject, html);
+
+    if (!sent) {
+      return NextResponse.json(
+        { error: "Erreur d'envoi d'email" },
+        { status: 500 }
+      );
     }
 
-    const from = process.env.RESEND_FROM || "noreply@shareschool.ci";
-
-    const { data, error } = await resend.emails.send({
-      from: `ShareSchool CI <${from}>`,
-      to: [to],
-      subject,
-      html,
-    });
-
-    if (error) {
-      console.error("Erreur Resend:", error);
-      return NextResponse.json({ error: "Erreur d'envoi d'email" }, { status: 500 });
-    }
-
-    return NextResponse.json({ message: "Email envoyé", id: data?.id });
+    return NextResponse.json({ message: "Email envoyé" });
   } catch (error) {
     console.error("Erreur envoi email:", error);
     return NextResponse.json(

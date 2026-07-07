@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Aucun fichier fourni" }, { status: 400 });
     }
 
-    if (!ALLOWED_MIME_TYPES.includes(file.type as any)) {
+    if (!(ALLOWED_MIME_TYPES as readonly string[]).includes(file.type)) {
       return NextResponse.json(
         { error: "Type de fichier non autorisé. Formats acceptés : PDF, DOC, DOCX, PPT, PPTX, JPG, PNG, WEBP" },
         { status: 400 }

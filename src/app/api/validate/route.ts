@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { awardXP } from "@/lib/xp";
+import { sendResourceNotification } from "@/lib/email";
 import type { ResourceStatus } from "@prisma/client";
 
 export async function POST(request: Request) {
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
 
     const resource = await prisma.resource.findUnique({
       where: { id: resourceId },
+      include: { author: true },
     });
 
     if (!resource) {
@@ -75,6 +77,14 @@ export async function POST(request: Request) {
 
     const xpAction = action === "APPROVED" ? "VALIDATE_APPROVE" : "VALIDATE_REJECT";
     const xpResult = await awardXP(session.user.id, xpAction, `Validation : ${resource.title}`);
+
+    await sendResourceNotification(
+      resource.author.email,
+      resource.author.firstName,
+      resource.title,
+      action as "APPROVED" | "REJECTED",
+      comment
+    );
 
     return NextResponse.json({
       message: `Ressource ${action === "APPROVED" ? "approuvée" : "rejetée"} avec succès`,

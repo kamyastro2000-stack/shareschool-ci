@@ -1,29 +1,26 @@
 # ShareSchool CI — Roadmap de Finalisation
 
 > Projet : SaaS B2B de partage de ressources pédagogiques pour élèves ivoiriens
-> Statut actuel : Phases 1 à 5 terminées (MVP complet)
-> Objectif : Rendre le projet réel, déployé, payant et sécurisé
+> Statut actuel : Phases 1 à 6 terminées (MVP complet + Fondations prod)
+> Objectif : Rendre le projet payant et monitoring
 
 ---
 
-## Priorité 1 — Fondations (indispensable)
+## Priorité 1 — Fondations (indispensable) ✅
 
-- [ ] **Git & GitHub**
-  - `git init` + premier commit
-  - Créer un dépôt privé GitHub
-  - Pousser le code (sans `.env`)
-  - Ajouter un `.gitignore` propre
+- [x] **Git & GitHub**
+  - Dépôt : `kamyastro2000-stack/shareschool-ci`
+  - Branch `main` — 5 commits
+  - `.gitignore` propre (`.env`, `node_modules`, `.next`)
 
-- [ ] **Base de données MySQL**
-  - Créer une base MySQL en ligne (PlanetScale, Railway, AWS RDS, ou OVH)
-  - Mettre à jour `DATABASE_URL` dans `.env`
-  - Lancer `npx prisma db push`
-  - Supprimer le fichier `prisma/dev.db`
+- [x] **Base de données MySQL**
+  - Base MySQL Aiven active
+  - `DATABASE_URL` configurée dans `.env`
+  - `npx prisma db push` exécuté
+  - Fichier `prisma/dev.db` supprimé
 
-- [ ] **Tests**
-  - Tests unitaires pour `src/lib/xp.ts`
-  - Tests unitaires pour `src/lib/cloudinary.ts`
-  - Tests API pour les routes principales (auth, quiz, ressources)
+- [x] **Tests**
+  - 18 tests unitaires (xp, cloudinary, rate-limit)
   - `npm test` opérationnel
 
 ---
@@ -46,10 +43,9 @@
 
 ## Priorité 3 — Mise en ligne (accessible depuis l'extérieur)
 
-- [ ] **Déploiement**
-  - Choisir un hébergeur : Vercel (recommandé) ou OVH
-  - Déployer l'application
-  - Vérifier que tout fonctionne
+- [x] **Déploiement**
+  - Hébergeur : Vercel
+  - Déployé et fonctionnel
 
 - [ ] **Domaine personnalisé**
   - Acheter un nom de domaine (ex: shareschool.ci, shareschool.education)
@@ -93,23 +89,23 @@
 
 ## Priorité 5 — Sécurité (protéger les données)
 
-- [ ] **Rate limiting**
-  - Limiter les tentatives de connexion
-  - Limiter les inscriptions par IP
-  - Limiter les uploads
+- [x] **Rate limiting**
+  - Limiter les tentatives de connexion ✅
+  - Limiter les inscriptions par IP ✅
+  - Limiter les uploads ✅
 
-- [ ] **Validation renforcée**
-  - Vérifier tous les inputs côté serveur (Zod ou Validator)
-  - Vérifier les types MIME des fichiers uploadés côté serveur
-  - Limiter la taille des fichiers côté serveur
+- [x] **Validation renforcée**
+  - Vérifier tous les inputs côté serveur (Zod) ✅
+  - Vérifier les types MIME des fichiers uploadés côté serveur ✅
+  - Limiter la taille des fichiers côté serveur ✅
 
-- [ ] **Headers de sécurité**
-  - Content-Security-Policy
-  - X-Frame-Options
-  - Strict-Transport-Security
+- [x] **Headers de sécurité**
+  - Content-Security-Policy ✅
+  - X-Frame-Options ✅
+  - Strict-Transport-Security ✅
 
-- [ ] **Timer quiz côté serveur**
-  - Ajouter une vérification du temps côté serveur (actuellement client seulement)
+- [x] **Timer quiz côté serveur**
+  - Vérification du temps côté serveur au submit ✅
 
 ---
 
@@ -174,19 +170,19 @@
 
 ## Calendrier suggéré
 
-| Priorité | Durée estimée | Dépend de |
+| Priorité | Statut | Durée estimée |
 |---|---|---|
-| P1 — Fondations | 2-3 jours | Rien |
-| P2 — Paiement | 3-5 jours | P1 (Git + BDD) |
-| P3 — Mise en ligne | 1-2 jours | P1 (Git + BDD) |
-| P4 — Légal | 1-2 jours | Rien (peut être en parallèle) |
-| P5 — Sécurité | 2-3 jours | P3 (déploiement) |
-| P6 — Monitoring | 1-2 jours | P3 (déploiement) |
-| P7 — CI/CD | 1 jour | P1 (Git) |
-| P8 — Finitions | 2-3 jours | N'importe quand |
+| P1 — Fondations | ✅ Terminé | 2-3 jours |
+| P5 — Sécurité | ✅ Terminé | 2-3 jours |
+| P3 — Mise en ligne | ✅ Terminé (Vercel) | 1-2 jours |
+| P2 — Paiement | ❌ À faire | 3-5 jours |
+| P4 — Légal | ❌ À faire | 1-2 jours |
+| P6 — Monitoring | ❌ À faire | 1-2 jours |
+| P7 — CI/CD | ❌ À faire | 1 jour |
+| P8 — Finitions | ❌ À faire | 2-3 jours |
 
-**Total estimé : 2 à 3 semaines à temps plein**
+**Total restant estimé : 1 à 2 semaines**
 
 ---
 
-> Prochaine étape suggérée : **Git + GitHub** (sauvegarder le code avant tout)
+> Prochaine étape suggérée : **Paiement Stripe** (générer des revenus)
