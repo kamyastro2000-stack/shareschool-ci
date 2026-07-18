@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Logo from "./Logo";
 
@@ -12,9 +12,19 @@ export default function Navbar() {
   const pathname = usePathname();
   const [showMenu, setShowMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isAuthPage = pathname === "/login" || pathname === "/register" || pathname === "/verify-email";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const y = window.scrollY;
+      setScrollProgress(Math.min(y / 120, 1));
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -71,190 +81,173 @@ export default function Navbar() {
 
   const isActiveLink = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-50">
-      <div className={isHomePage ? "" : "glass border-b border-white/[0.06]"}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Logo size="sm" />
+  const glassBlur = isHomePage ? Math.round(scrollProgress * 24) : 24;
+  const glassOpacity = isHomePage ? 0.03 + scrollProgress * 0.07 : 0.05;
+  const borderOpacity = isHomePage ? 0.04 + scrollProgress * 0.06 : 0.06;
 
-            {!isHomePage && user && (
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 navbar-glass" style={{
+      backgroundColor: `rgba(15, 26, 46, ${isHomePage ? scrollProgress * 0.85 : 0.85})`,
+      backdropFilter: `blur(${glassBlur}px) saturate(180%)`,
+      WebkitBackdropFilter: `blur(${glassBlur}px) saturate(180%)`,
+      borderBottom: `1px solid rgba(255, 255, 255, ${borderOpacity})`,
+    }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <Logo size="sm" />
+
+          {!isHomePage && user && (
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-1">
+                {navLinks().slice(0, 4).map((link) => {
+                  const isActive = isActiveLink(link.href);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 relative ${
+                        isActive
+                          ? "text-primary-light"
+                          : "text-white/60 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d={link.icon} />
+                      </svg>
+                      {link.label}
+                      {isActive && (
+                        <motion.div
+                          layoutId="nav-active-dot"
+                          className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gradient-to-r from-[#f77f00] to-[#009e60]"
+                          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                        />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+
               <div className="flex items-center gap-3">
-                {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-1">
-                  {navLinks().slice(0, 4).map((link) => {
-                    const isActive = isActiveLink(link.href);
-                    return (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
-                          isActive
-                            ? "bg-primary/20 text-primary-light"
-                            : "text-white/60 hover:text-white hover:bg-white/5"
-                        }`}
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d={link.icon} />
-                        </svg>
-                        {link.label}
-                      </Link>
-                    );
-                  })}
+                <div className="hidden sm:flex items-center gap-2">
+                  {isPlayer && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#f77f00]/15 to-[#009e60]/15 border border-[#f77f00]/20"
+                    >
+                      <svg className="w-3.5 h-3.5 text-[#f77f00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span className="text-xs font-bold text-[#f77f00]">{user.totalXP || 0} XP</span>
+                    </motion.div>
+                  )}
                 </div>
 
-                {/* User section */}
-                <div className="flex items-center gap-3">
-                  <div className="hidden sm:flex items-center gap-2">
-                    {isPlayer && (
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#f77f00]/15 to-[#009e60]/15 border border-[#f77f00]/20">
-                        <svg className="w-3.5 h-3.5 text-[#f77f00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        <span className="text-xs font-bold text-[#f77f00]">{user.totalXP || 0} XP</span>
-                      </div>
-                    )}
-                  </div>
+                <button
+                  onClick={() => setShowMobileMenu(!showMobileMenu)}
+                  className="md:hidden w-9 h-9 rounded-lg glass flex items-center justify-center text-white/60 hover:text-white transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    {showMobileMenu
+                      ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    }
+                  </svg>
+                </button>
 
-                  {/* Mobile menu button */}
-                  <button
-                    onClick={() => setShowMobileMenu(!showMobileMenu)}
-                    className="md:hidden w-9 h-9 rounded-lg glass flex items-center justify-center text-white/60 hover:text-white transition-all"
+                <div className="relative" ref={menuRef}>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowMenu(!showMenu)}
+                    className="w-9 h-9 rounded-xl gradient-btn-ci flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-[#009e60]/20 transition-shadow hover:shadow-[#009e60]/35"
                   >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      {showMobileMenu
-                        ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                      }
-                    </svg>
-                  </button>
+                    {user.firstName?.[0]}{user.lastName?.[0]}
+                  </motion.button>
 
-                  {/* Profile button */}
-                  <div className="relative" ref={menuRef}>
-                    <button
-                      onClick={() => setShowMenu(!showMenu)}
-                      className="w-9 h-9 rounded-xl gradient-btn-ci flex items-center justify-center text-white text-sm font-bold hover:shadow-lg hover:shadow-[#009e60]/25 transition-all active:scale-95"
-                    >
-                      {user.firstName?.[0]}{user.lastName?.[0]}
-                    </button>
-
-                    <AnimatePresence>
-                      {showMenu && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute right-0 mt-2 w-64 glass-strong rounded-xl shadow-2xl z-20 overflow-hidden"
-                        >
-                          {/* User info */}
-                          <div className="p-4 border-b border-white/10">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-10 h-10 rounded-xl gradient-btn-ci flex items-center justify-center text-white font-bold text-sm">
-                                {user.firstName?.[0]}{user.lastName?.[0]}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-white font-semibold text-sm truncate">
-                                  {user.firstName} {user.lastName}
-                                </p>
-                                <p className="text-xs text-white/40 truncate">{user.email}</p>
-                              </div>
+                  <AnimatePresence>
+                    {showMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-2 w-64 glass-strong rounded-xl shadow-2xl z-20 overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-white/10">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-xl gradient-btn-ci flex items-center justify-center text-white font-bold text-sm">
+                              {user.firstName?.[0]}{user.lastName?.[0]}
                             </div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {roleBadge()}
-                              {isPlayer && (
-                                <span className="badge badge-accent flex items-center gap-1">
-                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                  </svg>
-                                  Niv. {user.level || 1}
-                                </span>
-                              )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-semibold text-sm truncate">
+                                {user.firstName} {user.lastName}
+                              </p>
+                              <p className="text-xs text-white/40 truncate">{user.email}</p>
                             </div>
                           </div>
-
-                          {/* Nav links */}
-                          <div className="p-2 space-y-0.5">
-                            {navLinks().map((link) => {
-                              const isActive = isActiveLink(link.href);
-                              return (
-                                <Link
-                                  key={link.href}
-                                  href={link.href}
-                                  onClick={() => { setShowMenu(false); setShowMobileMenu(false); }}
-                                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                                    isActive
-                                      ? "bg-primary/15 text-primary-light"
-                                      : "text-white/70 hover:bg-white/5 hover:text-white"
-                                  }`}
-                                >
-                                  <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d={link.icon} />
-                                  </svg>
-                                  {link.label}
-                                </Link>
-                              );
-                            })}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {roleBadge()}
+                            {isPlayer && (
+                              <span className="badge badge-accent flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Niv. {user.level || 1}
+                              </span>
+                            )}
                           </div>
+                        </div>
 
-                          {/* Logout */}
-                          <div className="p-2 border-t border-white/10">
-                            <button
-                              onClick={() => { setShowMenu(false); signOut({ callbackUrl: "/login" }); }}
-                              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-error/80 hover:bg-error/10 transition-all"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                              </svg>
-                              Déconnexion
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                        <div className="p-2 space-y-0.5">
+                          {navLinks().map((link) => {
+                            const isActive = isActiveLink(link.href);
+                            return (
+                              <Link
+                                key={link.href}
+                                href={link.href}
+                                onClick={() => { setShowMenu(false); setShowMobileMenu(false); }}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all relative ${
+                                  isActive
+                                    ? "bg-primary/15 text-primary-light"
+                                    : "text-white/70 hover:bg-white/5 hover:text-white"
+                                }`}
+                              >
+                                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d={link.icon} />
+                                </svg>
+                                {link.label}
+                                {isActive && (
+                                  <motion.div
+                                    layoutId="nav-active-dot-mobile"
+                                    className="absolute right-3 w-1.5 h-1.5 rounded-full bg-gradient-to-r from-[#f77f00] to-[#009e60]"
+                                  />
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </div>
+
+                        <div className="p-2 border-t border-white/10">
+                          <button
+                            onClick={() => { setShowMenu(false); signOut({ callbackUrl: "/login" }); }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-error/80 hover:bg-error/10 transition-all"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            Déconnexion
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {showMobileMenu && user && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="glass border-b border-white/[0.06] md:hidden overflow-hidden"
-          >
-            <div className="p-3 space-y-0.5">
-              {navLinks().map((link) => {
-                const isActive = isActiveLink(link.href);
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                      isActive
-                        ? "bg-primary/15 text-primary-light"
-                        : "text-white/70 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d={link.icon} />
-                    </svg>
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </nav>
   );
 }

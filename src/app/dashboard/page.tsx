@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import ResourceCard from "@/components/ResourceCard";
@@ -34,22 +34,64 @@ interface Resource {
   validations?: { id: string; createdAt: string; validator: { firstName: string; lastName: string } }[];
 }
 
+function AnimatedNumber({ value, duration = 900 }: { value: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setStarted(true); }, { threshold: 0.3 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!started) return;
+    let raf: number;
+    let t0: number;
+    const tick = (ts: number) => {
+      if (!t0) t0 = ts;
+      const p = Math.min((ts - t0) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setCount(Math.round(eased * value));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [started, value, duration]);
+
+  return <span ref={ref} className="stat-glow">{count.toLocaleString("fr-FR")}</span>;
+}
+
 function StatCard({ label, value, icon, color }: { label: string; value: number | string; icon: string; color: string }) {
-  const displayValue = typeof value === "number" ? value.toLocaleString("fr-FR") : value;
+  const isNumber = typeof value === "number";
   return (
-    <div className="stat-card">
+    <motion.div
+      initial={{ opacity: 0, y: 15, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="stat-card group"
+    >
       <div className="flex items-start justify-between">
         <div>
-          <p className="stat-value gradient-text-full">{displayValue}</p>
+          <p className="stat-value gradient-text-full">
+            {isNumber ? <AnimatedNumber value={value} /> : value}
+          </p>
           <p className="stat-label">{label}</p>
         </div>
-        <div className={`w-9 h-9 rounded-lg flex items-center justify-center`} style={{ background: `${color}15`, border: `1px solid ${color}25` }}>
+        <motion.div
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+          style={{ background: `${color}15`, border: `1px solid ${color}25` }}
+        >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color }}>
             <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
           </svg>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -62,6 +104,11 @@ const stagger = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };
+
+const tabs = [
+  { id: "browse" as const, label: "Bibliothèque", icon: "M4 6h16M4 12h16M4 18h16" },
+  { id: "my" as const, label: "Mes publications", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
+];
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -76,6 +123,18 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"browse" | "my" | "pending">("browse");
   const [error, setError] = useState("");
   const [stats, setStats] = useState({ resourceCount: 0, quizCount: 0 });
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+  const updateIndicator = useCallback(() => {
+    const idx = [...tabs, { id: "pending" as const }].findIndex(t => t.id === activeTab);
+    const el = tabRefs.current[idx];
+    if (el) {
+      setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
+    }
+  }, [activeTab]);
+
+  useEffect(() => { updateIndicator(); }, [updateIndicator]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -175,11 +234,14 @@ export default function DashboardPage() {
     ] : []),
   ];
 
+  const allTabs = canValidate
+    ? [...tabs, { id: "pending" as const, label: "À valider", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" }]
+    : tabs;
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div initial="hidden" animate="visible" variants={stagger}>
-          {/* Header */}
           <motion.div variants={fadeUp} className="flex items-center justify-between flex-wrap gap-4 mb-8">
             <div>
               <span className="section-title block mb-1">Tableau de bord</span>
@@ -203,19 +265,20 @@ export default function DashboardPage() {
               </p>
             </div>
             {canUpload && (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => setShowUpload(true)}
-                className="gradient-btn-ci px-5 py-2.5 rounded-xl text-white text-sm font-semibold transition-all active:scale-95 flex items-center gap-2"
+                className="gradient-btn-ci px-5 py-2.5 rounded-xl text-white text-sm font-semibold transition-shadow shadow-lg shadow-[#009e60]/20 hover:shadow-[#009e60]/40 flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
                 Publier
-              </button>
+              </motion.button>
             )}
           </motion.div>
 
-          {/* Quick Stats */}
           <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             <StatCard label="Niveau" value={user.level || 1} icon="M13 10V3L4 14h7v7l9-11h-7z" color="#2d5a8e" />
             <StatCard label="XP totale" value={user.totalXP || 0} icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" color="#f77f00" />
@@ -223,40 +286,48 @@ export default function DashboardPage() {
             <StatCard label="Quiz réussis" value={stats.quizCount} icon="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" color="#4a8bc2" />
           </motion.div>
 
-          {/* Quick Actions (Bento) */}
           <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
             {quickActions.map((action) => (
               <Link
                 key={action.href}
                 href={action.href}
-                className="bento-card text-center p-4"
+                className="bento-card text-center p-4 group"
               >
-                <div className="bento-icon mx-auto mb-3">
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  className="bento-icon mx-auto mb-3"
+                >
                   <svg className="w-5 h-5 text-primary-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d={action.icon} />
                   </svg>
-                </div>
+                </motion.div>
                 <p className="text-sm text-white font-medium">{action.label}</p>
                 <p className="text-[0.65rem] text-white/40 mt-0.5">{action.desc}</p>
               </Link>
             ))}
           </motion.div>
 
-          {/* Player XP Card */}
           {isPlayer && (
             <motion.div variants={fadeUp} className="bento-card-accent mb-8 flex items-center gap-5 flex-wrap">
-              <div className="w-16 h-16 rounded-2xl gradient-btn-ci flex items-center justify-center text-2xl font-bold text-white shrink-0">
+              <motion.div
+                initial={{ scale: 0.5, rotate: -10 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.3 }}
+                className="w-16 h-16 rounded-2xl gradient-btn-ci flex items-center justify-center text-2xl font-bold text-white shrink-0"
+              >
                 {user.level || 1}
-              </div>
+              </motion.div>
               <div className="flex-1 min-w-[200px]">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-white font-semibold">Niveau {getLevel(user.totalXP || 0)}</p>
                   <p className="text-sm text-[#f77f00] font-bold">{user.totalXP || 0} XP</p>
                 </div>
                 <div className="progress-bar">
-                  <div
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.round((xpProgress?.progress ?? 0) * 100)}%` }}
+                    transition={{ duration: 1.2, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                     className="progress-bar-fill bg-gradient-to-r from-[#f77f00] to-[#009e60]"
-                    style={{ width: `${Math.round((xpProgress?.progress ?? 0) * 100)}%` }}
                   />
                 </div>
                 <p className="text-xs text-white/40 mt-1.5">Continuez comme ça ! Plus que {xpProgress ? xpProgress.next - xpProgress.current : 0} XP au prochain niveau</p>
@@ -270,31 +341,34 @@ export default function DashboardPage() {
             </motion.div>
           )}
 
-          {/* Tabs */}
-          <motion.div variants={fadeUp} className="flex gap-1 glass rounded-xl p-1 mb-6 overflow-x-auto">
-            {[
-              { id: "browse" as const, label: "Bibliothèque", icon: "M4 6h16M4 12h16M4 18h16" },
-              { id: "my" as const, label: "Mes publications", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
-              ...(canValidate ? [{ id: "pending" as const, label: "À valider", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" }] : []),
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  activeTab === tab.id
-                    ? "gradient-btn-ci text-white"
-                    : "text-white/50 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d={tab.icon} />
-                </svg>
-                {tab.label}
-              </button>
-            ))}
+          <motion.div variants={fadeUp} className="glass rounded-xl p-1 mb-6 relative overflow-hidden">
+            <div className="relative flex">
+              {allTabs.map((tab, i) => (
+                <button
+                  key={tab.id}
+                  ref={(el) => { tabRefs.current[i] = el; }}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 relative z-10 ${
+                    activeTab === tab.id
+                      ? "text-white"
+                      : "text-white/50 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d={tab.icon} />
+                  </svg>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <motion.div
+              className="absolute top-1 h-[calc(100%-8px)] rounded-lg bg-gradient-to-r from-[#f77f00] to-[#009e60]"
+              animate={{ left: indicator.left, width: indicator.width }}
+              transition={{ type: "spring", stiffness: 400, damping: 28 }}
+              style={{ zIndex: 0 }}
+            />
           </motion.div>
 
-          {/* Filters */}
           <motion.div variants={fadeUp} className="flex flex-wrap gap-3 mb-6">
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -329,9 +403,12 @@ export default function DashboardPage() {
             </select>
           </motion.div>
 
-          {/* Error */}
           {error && (
-            <motion.div variants={fadeUp} className="glass border border-error/30 rounded-xl p-3 mb-6 flex items-center gap-2">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass border border-error/30 rounded-xl p-3 mb-6 flex items-center gap-2"
+            >
               <svg className="w-4 h-4 text-error shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -339,25 +416,41 @@ export default function DashboardPage() {
             </motion.div>
           )}
 
-          {/* Resources */}
           <motion.div variants={fadeUp}>
             {loading ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="glass rounded-xl p-5">
-                    <div className="skeleton h-4 w-24 mb-3" />
-                    <div className="skeleton h-5 w-3/4 mb-2" />
-                    <div className="skeleton h-3 w-1/2" />
-                  </div>
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.08 }}
+                    className="glass rounded-xl p-5"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="skeleton h-8 w-8 rounded-lg" />
+                      <div className="skeleton h-3 w-16 rounded" />
+                    </div>
+                    <div className="skeleton h-4 w-3/4 mb-2 rounded" />
+                    <div className="skeleton h-3 w-1/2 rounded" />
+                  </motion.div>
                 ))}
               </div>
             ) : resources.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-2xl glass flex items-center justify-center mx-auto mb-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-16"
+              >
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-16 h-16 rounded-2xl glass flex items-center justify-center mx-auto mb-4"
+                >
                   <svg className="w-8 h-8 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
-                </div>
+                </motion.div>
                 <p className="text-white/50">Aucune ressource trouvée</p>
                 {activeTab === "browse" && canUpload && (
                   <button
@@ -367,7 +460,7 @@ export default function DashboardPage() {
                     Soyez le premier à publier !
                   </button>
                 )}
-              </div>
+              </motion.div>
             ) : (
               <div className="space-y-3">
                 {resources.map((resource, i) => (

@@ -1,54 +1,36 @@
-import { render } from "@react-email/components";
+import { Resend } from "resend";
 import type { ReactElement } from "react";
 
 import VerificationCodeEmail from "@/emails/verification-code";
 import WelcomeEmail from "@/emails/welcome";
 import ResourceNotificationEmail from "@/emails/resource-notification";
 
-const MAILTRAP_API_URL = "https://send.api.mailtrap.io/api/send";
+const resend = new Resend(process.env.RESEND_API_KEY || "");
 
-const fromEmail = process.env.MAILTRAP_FROM_EMAIL || "noreply@shareschool.ci";
+const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 const fromName = "ShareSchool CI";
 
-async function sendComponentEmail(
+async function sendEmail(
   to: string,
   subject: string,
-  component: ReactElement
+  content: { html: string } | { react: ReactElement },
 ): Promise<boolean> {
-  const html = await render(component);
-  return sendRawEmail(to, subject, html);
-}
-
-export async function sendRawEmail(
-  to: string,
-  subject: string,
-  html: string
-): Promise<boolean> {
-  const apiKey = process.env.MAILTRAP_API_KEY;
+  const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.log(`[EMAIL SIMULÉ] To: ${to} | Subject: ${subject}`);
     return false;
   }
 
   try {
-    const res = await fetch(MAILTRAP_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        from: { email: fromEmail, name: fromName },
-        to: [{ email: to }],
-        subject,
-        html,
-        category: "notification",
-      }),
+    const { error } = await resend.emails.send({
+      from: `${fromName} <${fromEmail}>`,
+      to,
+      subject,
+      ...content,
     });
 
-    if (!res.ok) {
-      const err = await res.text();
-      console.error(`[EMAIL ERREUR] ${subject} -> ${to}:`, err);
+    if (error) {
+      console.error(`[EMAIL ERREUR] ${subject} -> ${to}:`, error);
       return false;
     }
 
@@ -59,16 +41,22 @@ export async function sendRawEmail(
   }
 }
 
+export async function sendRawEmail(
+  to: string,
+  subject: string,
+  html: string
+): Promise<boolean> {
+  return sendEmail(to, subject, { html });
+}
+
 export async function sendVerificationCode(
   to: string,
   code: string,
   firstName: string
 ): Promise<boolean> {
-  return sendComponentEmail(
-    to,
-    "Code de vérification ShareSchool",
-    <VerificationCodeEmail code={code} firstName={firstName} />
-  );
+  return sendEmail(to, "Code de vérification ShareSchool", {
+    react: <VerificationCodeEmail code={code} firstName={firstName} />,
+  });
 }
 
 export async function sendWelcome(
@@ -77,15 +65,15 @@ export async function sendWelcome(
   establishmentName: string,
   className: string
 ): Promise<boolean> {
-  return sendComponentEmail(
-    to,
-    "Bienvenue sur ShareSchool CI !",
-    <WelcomeEmail
-      firstName={firstName}
-      establishmentName={establishmentName}
-      className={className}
-    />
-  );
+  return sendEmail(to, "Bienvenue sur ShareSchool CI !", {
+    react: (
+      <WelcomeEmail
+        firstName={firstName}
+        establishmentName={establishmentName}
+        className={className}
+      />
+    ),
+  });
 }
 
 export async function sendResourceNotification(
@@ -96,14 +84,14 @@ export async function sendResourceNotification(
   comment?: string
 ): Promise<boolean> {
   const subject = `Ressource ${status === "APPROVED" ? "approuvée" : "refusée"} — ${resourceTitle}`;
-  return sendComponentEmail(
-    to,
-    subject,
-    <ResourceNotificationEmail
-      firstName={firstName}
-      resourceTitle={resourceTitle}
-      status={status}
-      comment={comment}
-    />
-  );
+  return sendEmail(to, subject, {
+    react: (
+      <ResourceNotificationEmail
+        firstName={firstName}
+        resourceTitle={resourceTitle}
+        status={status}
+        comment={comment}
+      />
+    ),
+  });
 }

@@ -3,7 +3,80 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Logo from "@/components/Logo";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+
+function ScrambleText({ words, className }: { words: string[]; className?: string }) {
+  const [index, setIndex] = useState(0);
+  const [display, setDisplay] = useState(words[0]);
+  const frameRef = useRef<number>(0);
+
+  useEffect(() => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    let wordIndex = index;
+    let iteration = 0;
+    const target = words[wordIndex];
+    const totalTicks = target.length * 2 + 10;
+
+    const tick = () => {
+      iteration++;
+      if (iteration <= target.length) {
+        setDisplay(
+          target
+            .split("")
+            .map((c, i) => (i < iteration ? c : chars[Math.floor(Math.random() * chars.length)]))
+            .join("")
+        );
+        frameRef.current = requestAnimationFrame(tick);
+      } else if (iteration < totalTicks) {
+        setDisplay(target);
+        frameRef.current = requestAnimationFrame(tick);
+      } else {
+        const nextIndex = (wordIndex + 1) % words.length;
+        wordIndex = nextIndex;
+        setIndex(nextIndex);
+        iteration = 0;
+        frameRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    frameRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
+
+  return <span className={className}>{display}</span>;
+}
+
+function MagneticButton({ children, href, className }: { children: React.ReactNode; href: string; className?: string }) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    setOffset({
+      x: (e.clientX - cx) * 0.15,
+      y: (e.clientY - cy) * 0.15,
+    });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => setOffset({ x: 0, y: 0 }), []);
+
+  return (
+    <Link
+      ref={ref}
+      href={href}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={className}
+      style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
+    >
+      {children}
+    </Link>
+  );
+}
 
 function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -26,7 +99,8 @@ function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: num
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * end));
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * end));
       if (progress < 1) rafId = requestAnimationFrame(animate);
     };
     rafId = requestAnimationFrame(animate);
@@ -34,6 +108,50 @@ function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: num
   }, [hasStarted, end, duration]);
 
   return <span ref={ref}>{count.toLocaleString("fr-FR")}</span>;
+}
+
+function BentoCard3D({ children, className, gradient }: { children: React.ReactNode; className?: string; gradient?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, glare: 0, mx: 50, my: 50 });
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setTilt({
+      rotateX: (0.5 - y) * 12,
+      rotateY: (x - 0.5) * 12,
+      glare: 0.18,
+      mx: x * 100,
+      my: y * 100,
+    });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => setTilt({ rotateX: 0, rotateY: 0, glare: 0, mx: 50, my: 50 }), []);
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={`${className} bento-card-3d`}
+      style={{
+        transform: `perspective(800px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) translateY(-4px)`,
+        transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+      }}
+    >
+      <div
+        className="bento-card-glare"
+        style={{
+          background: `radial-gradient(600px circle at ${tilt.mx}% ${tilt.my}%, ${gradient || "rgba(30,58,95,0.25)"}, transparent 40%)`,
+          opacity: tilt.glare,
+        }}
+      />
+      <div className="bento-card-border-light" style={{ opacity: tilt.glare * 0.6, left: `${tilt.mx}%`, top: `${tilt.my}%` }} />
+      <div className="relative z-10">{children}</div>
+    </div>
+  );
 }
 
 const stagger = {
@@ -143,7 +261,10 @@ export default function Home() {
 
               <motion.h1 variants={fadeUp} className="mega-title text-white mb-6">
                 Partager pour{" "}
-                <span className="gradient-text-full">réussir</span>
+                <ScrambleText
+                  words={["réussir", "apprendre", "progresser", "briller", "grandir"]}
+                  className="gradient-text-full inline-block min-w-[6ch]"
+                />
                 <br />
                 ensemble
               </motion.h1>
@@ -154,21 +275,21 @@ export default function Home() {
               </motion.p>
 
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-                <Link
+                <MagneticButton
                   href="/register"
-                  className="gradient-btn-ci px-8 py-3.5 rounded-xl text-white font-semibold text-base shadow-lg shadow-[#009e60]/25 hover:shadow-[#009e60]/40 transition-all w-full sm:w-auto text-center inline-flex items-center justify-center gap-2 group"
+                  className="gradient-btn-ci px-8 py-3.5 rounded-xl text-white font-semibold text-base shadow-lg shadow-[#009e60]/25 hover:shadow-[#009e60]/40 transition-shadow w-full sm:w-auto text-center inline-flex items-center justify-center gap-2 group"
                 >
                   Commencer gratuitement
                   <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
-                </Link>
-                <Link
+                </MagneticButton>
+                <MagneticButton
                   href="/login"
                   className="glass px-8 py-3.5 rounded-xl text-white font-semibold text-base hover:bg-white/10 transition-all w-full sm:w-auto text-center border border-white/10"
                 >
                   Se connecter
-                </Link>
+                </MagneticButton>
               </motion.div>
 
               <motion.div variants={fadeUp} className="flex items-center gap-6 mt-8 justify-center lg:justify-start">
@@ -283,25 +404,16 @@ export default function Home() {
             className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
           >
             {features.map((feature, i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp}
-                className="bento-card group bg-gradient-to-br from-transparent to-white/[0.01]"
-                onMouseMove={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = ((e.clientX - rect.left) / rect.width) * 100;
-                  const y = ((e.clientY - rect.top) / rect.height) * 100;
-                  e.currentTarget.style.setProperty("--mouse-x", `${x}%`);
-                  e.currentTarget.style.setProperty("--mouse-y", `${y}%`);
-                }}
-              >
-                <div className={`${feature.bentoClass} mb-4`}>
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d={feature.icon} />
-                  </svg>
-                </div>
-                <h3 className="text-white font-semibold text-lg mb-2">{feature.title}</h3>
-                <p className="text-sm text-white/50 leading-relaxed">{feature.desc}</p>
+              <motion.div key={i} variants={fadeUp}>
+                <BentoCard3D className="bg-gradient-to-br from-transparent to-white/[0.01]">
+                  <div className={`${feature.bentoClass} mb-4`}>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d={feature.icon} />
+                    </svg>
+                  </div>
+                  <h3 className="text-white font-semibold text-lg mb-2">{feature.title}</h3>
+                  <p className="text-sm text-white/50 leading-relaxed">{feature.desc}</p>
+                </BentoCard3D>
               </motion.div>
             ))}
           </motion.div>
@@ -426,21 +538,21 @@ export default function Home() {
                 Rejoignez des milliers d&apos;élèves ivoiriens qui partagent et apprennent ensemble.
               </motion.p>
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link
+                <MagneticButton
                   href="/register"
-                  className="gradient-btn-ci px-8 py-3.5 rounded-xl text-white font-semibold text-base shadow-lg shadow-[#009e60]/25 hover:shadow-[#009e60]/40 transition-all inline-flex items-center gap-2 group"
+                  className="gradient-btn-ci px-8 py-3.5 rounded-xl text-white font-semibold text-base shadow-lg shadow-[#009e60]/25 hover:shadow-[#009e60]/40 transition-shadow inline-flex items-center gap-2 group"
                 >
                   Créer un compte gratuit
                   <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
-                </Link>
-                <Link
+                </MagneticButton>
+                <MagneticButton
                   href="/login"
                   className="glass px-8 py-3.5 rounded-xl text-white font-semibold text-base hover:bg-white/10 transition-all border border-white/10"
                 >
                   J&apos;ai déjà un compte
-                </Link>
+                </MagneticButton>
               </motion.div>
             </div>
           </motion.div>
