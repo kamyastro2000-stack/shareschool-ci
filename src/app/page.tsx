@@ -9,6 +9,7 @@ function ScrambleText({ words, className }: { words: string[]; className?: strin
   const [index, setIndex] = useState(0);
   const [display, setDisplay] = useState(words[0]);
   const frameRef = useRef<number>(0);
+  const startedRef = useRef(false);
 
   useEffect(() => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -38,6 +39,17 @@ function ScrambleText({ words, className }: { words: string[]; className?: strin
         frameRef.current = requestAnimationFrame(tick);
       }
     };
+
+    if (!startedRef.current) {
+      startedRef.current = true;
+      const timer = setTimeout(() => {
+        frameRef.current = requestAnimationFrame(tick);
+      }, 1500);
+      return () => {
+        clearTimeout(timer);
+        cancelAnimationFrame(frameRef.current);
+      };
+    }
 
     frameRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frameRef.current);
@@ -209,13 +221,6 @@ const features = [
   },
 ];
 
-const stats = [
-  { label: "Élèves actifs", end: 1250, icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197" },
-  { label: "Ressources partagées", end: 2840, icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" },
-  { label: "Quiz complétés", end: 4560, icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" },
-  { label: "Établissements", end: 8, icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
-];
-
 const steps = [
   { step: "01", title: "Créez votre compte", desc: "Inscrivez-vous avec votre établissement et votre classe. Recevez un code de vérification par email." },
   { step: "02", title: "Explorez & partagez", desc: "Accédez aux ressources de votre classe, déposez vos documents et participez aux quiz." },
@@ -223,6 +228,22 @@ const steps = [
 ];
 
 export default function Home() {
+  const [publicStats, setPublicStats] = useState({ students: 0, resources: 0, quizzes: 0, establishments: 0 });
+
+  useEffect(() => {
+    fetch("/api/public/stats")
+      .then((r) => r.json())
+      .then((data) => setPublicStats(data))
+      .catch(() => {});
+  }, []);
+
+  const stats = [
+    { label: "Élèves actifs", end: publicStats.students, icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197" },
+    { label: "Ressources partagées", end: publicStats.resources, icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" },
+    { label: "Quiz complétés", end: publicStats.quizzes, icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" },
+    { label: "Établissements", end: publicStats.establishments, icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
+  ];
+
   return (
     <div className="min-h-screen">
       {/* ============ HERO ============ */}
@@ -298,7 +319,11 @@ export default function Home() {
                     <div key={i} className="w-8 h-8 rounded-full border-2 border-[#080c14]" style={{ background: c }} />
                   ))}
                 </div>
-                <span className="text-sm text-white/40">Rejoint par <span className="text-white/70 font-semibold">1 250+</span> élèves</span>
+                <span className="text-sm text-white/40">
+                  {publicStats.students > 0
+                    ? <>Rejoint par <span className="text-white/70 font-semibold">{publicStats.students.toLocaleString("fr-FR")}+</span> élèves</>
+                    : "Plateforme en cours de déploiement"}
+                </span>
               </motion.div>
             </motion.div>
 
@@ -333,7 +358,11 @@ export default function Home() {
                   >
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                      <span className="text-xs text-white/70">Côte d&apos;Ivoire · 3 écoles connectées</span>
+                      <span className="text-xs text-white/70">
+                        {publicStats.establishments > 0
+                          ? `Côte d'Ivoire · ${publicStats.establishments} école${publicStats.establishments > 1 ? "s" : ""} connectée${publicStats.establishments > 1 ? "s" : ""}`
+                          : "Côte d'Ivoire · Plateforme éducative"}
+                      </span>
                     </div>
                     <div className="flex -space-x-2">
                       {["#f77f00", "#009e60", "#1e3a5f", "#c9a84c"].map((c, i) => (
@@ -421,51 +450,48 @@ export default function Home() {
       </section>
 
       {/* ============ TRUSTED SCHOOLS ============ */}
-      <section className="relative py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="text-center mb-12"
-          >
-            <motion.span variants={fadeUp} className="section-title block mb-3">Ils nous font confiance</motion.span>
-            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Nos établissements partenaires
-            </motion.h2>
-          </motion.div>
+      {publicStats.establishments > 0 && (
+        <section className="relative py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={stagger}
+              className="text-center mb-12"
+            >
+              <motion.span variants={fadeUp} className="section-title block mb-3">Ils nous font confiance</motion.span>
+              <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                Nos établissements partenaires
+              </motion.h2>
+            </motion.div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
-          >
-            {[
-              { name: "Lycée Scientifique d'Abidjan", students: "450+", color: "from-[#f77f00]/20" },
-              { name: "Collège Moderne de Yopougon", students: "320+", color: "from-[#009e60]/20" },
-              { name: "Lycée Classique d'Abidjan", students: "280+", color: "from-primary/20" },
-              { name: "Collège Saint-Viateur", students: "200+", color: "from-accent/20" },
-            ].map((school, i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp}
-                className={`bento-card text-center bg-gradient-to-b ${school.color} to-transparent`}
-              >
-                <div className="w-14 h-14 rounded-2xl glass flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-7 h-7 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <h3 className="text-white font-semibold">{school.name}</h3>
-                <p className="text-sm text-white/40 mt-1">{school.students} élèves</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={stagger}
+              className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
+            >
+              {[...Array(Math.min(publicStats.establishments, 4))].map((_, i) => (
+                <motion.div
+                  key={i}
+                  variants={fadeUp}
+                  className={`bento-card text-center bg-gradient-to-b ${["from-[#f77f00]/20", "from-[#009e60]/20", "from-primary/20", "from-accent/20"][i % 4]} to-transparent`}
+                >
+                  <div className="w-14 h-14 rounded-2xl glass flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-7 h-7 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-white font-semibold">Établissement {i + 1}</h3>
+                  <p className="text-sm text-white/40 mt-1">Partenaire certifié</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* ============ HOW IT WORKS ============ */}
       <section className="relative py-24">
@@ -535,7 +561,9 @@ export default function Home() {
                 Rejoignez l&apos;aventure <span className="gradient-text-ci">ShareSchool</span>
               </motion.h2>
               <motion.p variants={fadeUp} className="text-white/50 mb-8 max-w-lg mx-auto text-lg">
-                Rejoignez des milliers d&apos;élèves ivoiriens qui partagent et apprennent ensemble.
+                {publicStats.students > 0
+                  ? `Rejoignez ${publicStats.students.toLocaleString("fr-FR")}+ élèves ivoiriens qui partagent et apprennent ensemble.`
+                  : "Rejoignez les élèves ivoiriens qui partagent et apprennent ensemble."}
               </motion.p>
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <MagneticButton
@@ -601,9 +629,9 @@ export default function Home() {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#009e60]" />
                   Abidjan, Côte d&apos;Ivoire
                 </p>
-                <p className="text-accent-light hover:text-accent-lighter transition-colors cursor-default flex items-center gap-1.5">
+                <p className="text-sm text-white/40 hover:text-white/60 transition-colors cursor-default flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-                  +225 00 00 00 00
+                  +225 XX XX XX XX
                 </p>
               </div>
             </div>
