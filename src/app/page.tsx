@@ -290,12 +290,12 @@ export default function Home() {
                 ensemble
               </motion.h1>
 
-              <motion.p variants={fadeUp} className="mega-subtitle mx-auto lg:mx-0 mb-8">
+              <motion.p variants={fadeUp} className="mega-subtitle mx-auto mb-8">
                 La première plateforme ivoirienne de mutualisation de cours, exposés et devoirs
                 entre élèves. Chaque établissement dispose de son espace privé et sécurisé.
               </motion.p>
 
-              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-4 justify-center">
                 <MagneticButton
                   href="/register"
                   className="gradient-btn-ci px-8 py-3.5 rounded-xl text-white font-semibold text-base shadow-lg shadow-[#009e60]/25 hover:shadow-[#009e60]/40 transition-shadow w-full sm:w-auto text-center inline-flex items-center justify-center gap-2 group"
@@ -313,7 +313,7 @@ export default function Home() {
                 </MagneticButton>
               </motion.div>
 
-              <motion.div variants={fadeUp} className="flex items-center gap-6 mt-8 justify-center lg:justify-start">
+              <motion.div variants={fadeUp} className="flex items-center gap-6 mt-8 justify-center">
                 <div className="flex -space-x-2">
                   {["#f77f00", "#009e60", "#1e3a5f", "#c9a84c"].map((c, i) => (
                     <div key={i} className="w-8 h-8 rounded-full border-2 border-[#080c14]" style={{ background: c }} />
