@@ -1,6 +1,6 @@
 # SHARESCHOOL CI — MÉMOIRE COMPLÈTE DU PROJET
 
-> Fichier mémoire généré le 04/07/2026 — Dernière mise à jour : 07/07/2026
+> Fichier mémoire généré le 04/07/2026 — Dernière mise à jour : 18/07/2026
 > À lire en début de session pour tout retrouver.
 
 ---
@@ -12,10 +12,6 @@
 - **Modèle** : SaaS B2B multi-établissement (vendu clé en main aux écoles)
 - **Cahier des charges** : `C:\Users\Kamya\Desktop\mon projet.txt`
 - **Emplacement du projet** : `D:\Mon Projet\shareschool_Projet`
-- **Sauvegarde** : Dossier `SAUVEGARDE/` supprimé le 05/07/2026 (ancienne version sans gamification/chat, inutile)
-- **Projet nettoyé le 05/07/2026** : fichiers inutiles supprimés (node_modules, .next, uploads, tsconfig.tsbuildinfo)
-- **Refonte design complète (05/07/2026)** : toutes les pages refaites avec design glassmorphisme enrichi, logo créé, navbar refaite
-- **Refonte style premium QClay (05/07/2026 soir)** : FloatingElements (livres/chiffres/diplômes animés en fond), bento grid, glows, mega-title, orbes, stat cards, landing refaite, dashboard refait, globals.css enrichi
 - **Roadmap de finalisation** : `D:\Mon Projet\shareschool_Projet\ROADMAP-PRODUCTION.md`
 - **Stack** : Next.js 16.2.10 (App Router) + TypeScript + Prisma 6 + MySQL (Aiven) + Tailwind CSS v4 + Framer Motion + React Email
 - **Auth** : NextAuth v5 (beta.31) — Credentials provider, JWT sessions
@@ -23,7 +19,7 @@
 - **Upload** : Cloudinary (cloud `l5duachn`)
 - **Base de données** : MySQL (Aiven) — SQLite supprimée
 - **Git** : `https://github.com/kamyastro2000-stack/shareschool-ci.git` (branch `main`)
-- **Déploiement** : Vercel
+- **Déploiement** : Vercel (`https://shareschool-ci.vercel.app`)
 
 ---
 
@@ -164,36 +160,138 @@ npm run db:reset                # Reset BDD + seed
 | Composant | Fichier |
 |---|---|---|
 | `Logo` | `src/components/Logo.tsx` (icône graduation + dégradé violet/orange) |
-| `Navbar` | `src/components/Navbar.tsx` (role-based, logo intégré, menu desktop/mobile, profil dropdown animé) |
+| `Navbar` | `src/components/Navbar.tsx` (scroll-reactive glass, active link indicator, role-based, menu desktop/mobile, profil dropdown animé) |
 | `Providers` | `src/components/Providers.tsx` (SessionProvider) |
-| `PageTransition` | `src/components/PageTransition.tsx` (Framer Motion) |
+| `PageTransition` | `src/components/PageTransition.tsx` (Framer Motion — fade/slide/scale entre routes) |
 | `ResourceCard` | `src/components/ResourceCard.tsx` (icônes type fichier, status badges, validation actions, glass-card) |
 | `UploadModal` | `src/components/UploadModal.tsx` (drag & drop, formatage taille, header design) |
 | `LoadingSpinner` | `src/components/LoadingSpinner.tsx` |
 | `ErrorMessage` | `src/components/ErrorMessage.tsx` |
 | `SuccessMessage` | `src/components/SuccessMessage.tsx` |
-| `FloatingElements` | `src/components/FloatingElements.tsx` (30 icônes scolaires animées en fond : livres, diplômes, crayons, atomes, chiffres/lettres, 5 animations différentes) |
+| `FloatingElements` | `src/components/FloatingElements.tsx` (35 icônes scolaires animées en fond : livres, diplômes, crayons, atomes, chiffres/lettres, 5 animations différentes) |
 | `VerificationCodeEmail` | `src/emails/verification-code.tsx` (code à 6 chiffres, React Email, dark mode) |
 | `WelcomeEmail` | `src/emails/welcome.tsx` (bienvenue après activation, fonctionnalités, CTA) |
 | `ResourceNotificationEmail` | `src/emails/resource-notification.tsx` (notification approbation/refus avec commentaire) |
 | `Service email` | `src/lib/email.tsx` (centralisation Resend + React Email, 4 fonctions exportées) |
 
+### Composants d'animation internes (dans `page.tsx`) :
+
+| Composant | Fichier | Rôle |
+|---|---|---|
+| `ScrambleText` | `src/app/page.tsx` | Text scramble effect — défile entre des mots avec remplacement caractère par caractère (glitch) |
+| `MagneticButton` | `src/app/page.tsx` | Bouton magnétique — suit la souris avec offset calculé (0.15x) |
+| `BentoCard3D` | `src/app/page.tsx` | Carte bento 3D — tilt perspective (800px), glare radial gradient, border light localisée |
+| `AnimatedCounter` | `src/app/page.tsx` | Compteur animé (landing) — easing cubic, IntersectionObserver |
+| `AnimatedNumber` | `src/app/dashboard/page.tsx` | Compteur animé (dashboard) — easing cubic, stat-glow |
+| `AnimatedXP` | `src/app/(app)/classement/page.tsx` | Compteur XP animé (classement) — delay staggeré par rang |
+
 ---
 
 ## 7. DESIGN SYSTEM
 
-Fichier : `src/app/globals.css`
+Fichier : `src/app/globals.css` (~1250 lignes)
 
-- **Fond** : Dégradé `#1e1b4b → #312e81 → #4338ca`
-- **Glassmorphisme** : `.glass` (blur 16px, bordure rgba(255,255,255,0.12)), `.glass-strong` (blur 24px)
-- **Boutons primaires** : `.gradient-btn` (dégradé `#6366f1 → #4f46e5`), `.gradient-btn-accent` (dégradé `#f97316 → #ea580c`)
-- **Badges** : `.badge`, `.badge-primary`, `.badge-accent`, `.badge-success`, `.badge-info`, `.badge-warning`
-- **Utilitaires** : `.card-hover` (scale + glow), `.skeleton`, `.progress-bar`, `.avatar`, `.tooltip`, `.floating-shape`, `.gradient-text`, `.bento-card`, `.bento-card-accent`, `.bento-icon`, `.stat-card`, `.stat-value`, `.premium-card`, `.mega-title`, `.mega-subtitle`, `.section-title`, `.gradient-border`, `.orb`, `.glow-primary`, `.glow-accent`, `.glow-text`
-- **Couleurs** : primary (`#6366f1`), primary-light (`#818cf8`), accent (`#f97316`), success (`#22c55e`), warning (`#eab308`), error (`#ef4444`)
-- **Animations** : `fade-in-up`, `fade-in`, `slide-in-right`, `scale-in`, `shimmer`, `pulse-glow`, `float`, `count-up`, `fe-float-0` à `fe-float-4` (flottants décoratifs), `float-slow`, `glow-pulse`, `slide-up`
-- **Inputs** : `.input-field`, `.select-field` (styles réutilisables avec focus glow)
-- **Stagger** : `.stagger-1` à `.stagger-5` pour apparition en cascade
-- **Responsive** : mobile-first avec breakpoints Tailwind
+### Identité visuelle :
+- **Fond** : Dégradé `#080c14 → #0f1a2e → #1a2a40` (gradient-bg animé 20s)
+- **Palette CI** : Orange (`#f77f00`), Vert (`#009e60`), Or (`#d4a017`) — drapeau ivoirien
+- **Palette projet** : Primary (`#1e3a5f`), Accent (`#c9a84c`), Success (`#009e60`)
+
+### Glassmorphisme :
+- `.glass` : blur 18px, saturate 180%, bordure rgba(255,255,255,0.07)
+- `.glass-strong` : blur 24px, saturate 180%, bordure rgba(255,255,255,0.12)
+- `.glass-light` : blur 12px, bordure subtile
+- `.glass-card` : hover translateY(-3px) + ombre profonde
+
+### Boutons :
+- `.gradient-btn` : dégradé primary (bleu)
+- `.gradient-btn-ci` : dégradé CI (orange → vert) — **bouton principal**
+- `.gradient-btn-accent` : dégradé accent (or)
+- `.gradient-btn-success` / `.gradient-btn-error` : états
+- Tous avec `::before` overlay au hover + `active:scale-0.97`
+
+### Bento grid :
+- `.bento-card` : glass + borderRadius 1.25rem + hover translateY(-4px) + glow shadow
+- `.bento-card-3d` : **[NEW]** glass + perspective 800px + tilt 3D au survol + glare overlay + border light
+- `.bento-card-ci` : variante CI (orange/vert)
+- `.bento-card-accent` : variante accent (primary/or)
+- `.bento-icon` : icône 2.75rem avec fond glass gradient
+- `.bento-card-glare` : **[NEW]** overlay radial-gradient qui suit la souris
+- `.bento-card-border-light` : **[NEW]** anneau lumineux localisé au curseur
+
+### Éléments premium :
+- `.premium-card` : glass 24px + borderRadius 1.5rem + hover translateY(-4px)
+- `.mega-title` : `clamp(2.5rem, 6vw, 4.5rem)`, weight 800, letter-spacing -0.03em
+- `.mega-subtitle` : `clamp(1rem, 2vw, 1.25rem)`, lineHeight 1.65, white/40
+- `.gradient-text-full` : dégradé primary → or (clip text)
+- `.gradient-text-ci` : dégradé orange → vert animé (gradient-shift 4s)
+- `.gradient-border-ci` : bordure gradient CI animée (mask-composite)
+
+### Gradients texte :
+- `.gradient-text` : primary → primary-light
+- `.gradient-text-accent` : or → accent-light
+- `.gradient-text-full` : primary → or (multi-stop)
+- `.gradient-text-ci` : CI orange → vert → orange (animé)
+
+### Orbes & Backgrounds :
+- `.orb` : blur 100px, pointer-events none
+- `.orb-primary` / `.orb-ci-orange` / `.orb-ci-green` : couleurs
+- `.bg-grid` : grille 60px avec lignes rgba(255,255,255,0.025)
+- `.bg-grid-ci` : grille CI (orange/vert 0.06)
+- `.ci-flag-strip` : drapeau CI (3 couleurs, flex)
+
+### Badges :
+- `.badge` : pill, padding 0.125rem 0.625rem
+- `.badge-primary` : fond primary/30, texte bleu clair
+- `.badge-accent` : fond accent/20, texte or clair
+- `.badge-success` / `.badge-warning` / `.badge-error` / `.badge-info`
+
+### Inputs :
+- `.input-field` : fond rgba(255,255,255,0.04), focus glow primary
+- `.select-field` : même style + flèche SVG custom
+
+### Animations clés :
+
+| Animation | Usage |
+|---|---|
+| `fade-in-up` | Entrée générale (y: 24px → 0) |
+| `fade-in-down` | Entrée descendante |
+| `slide-in-right` / `slide-in-left` | Entrée latérale |
+| `scale-in` | Entrée par zoom (0.92 → 1) |
+| `shimmer` | Skeleton loading (gradient qui traverse) |
+| `shimmer-premium` | **[NEW]** Skeleton amélioré (5 stops, 300% bg-size, 2s) |
+| `pulse-glow` / `glow-pulse` | Halo lumineux pulsé |
+| `float` / `float-slow` | Flottement vertical |
+| `float-3d` | Flottement 3D (rotateX + rotateY) |
+| `fe-float-0` à `fe-float-4` | Mouvements variés des FloatingElements |
+| `gradient-shift` | Dégradé qui bouge (20s pour bg, 4s pour texte CI) |
+| `bounce-in` | Entrée rebond |
+| `morph` | Blob qui change de forme (12s) |
+| `aurora` | Orbe aurore boréale (20s) |
+| `ken-burns` | Zoom + translate lent (image hero) |
+| `podium-rise` | **[NEW]** Colonne du podium qui monte (spring bounce, transform-origin bottom) |
+| `medal-glow` | **[NEW]** Pulse lumineux sur médaille d'or (drop-shadow) |
+| `counter-glow` | **[NEW]** Halo subtil sur compteurs animés |
+| `ripple` | Effet onde au clic |
+| `progress-fill` | Barre de progression qui se remplit |
+| `spin-slow` | Rotation lente (10s) |
+| `pulse-ring` | Anneau qui s'étend et disparaît |
+
+### Composants CSS réutilisables :
+
+| Classe | Rôle |
+|---|---|
+| `.stat-card` | Carte de statistique (glass, hover translateY) |
+| `.stat-value` | Valeur 1.75rem, weight 800, letter-spacing -0.02em |
+| `.stat-label` | Label 0.8rem, white/35 |
+| `.avatar` / `.avatar-sm/md/lg/xl` | Initiales sur fond gradient |
+| `.tooltip` | Tooltip CSS pur (data-tooltip, hover show) |
+| `.progress-bar` / `.progress-bar-fill` | Barre de progression (transition 0.8s) |
+| `.section-title` | Label uppercase 0.7rem, letter-spacing 0.1em |
+| `.section-divider` | Ligne gradient transparent → primary/or → transparent |
+| `.notification-dot` | Point rouge pulsé (badge notification) |
+| `.skeleton` | **[NEW]** Shimmer premium (5 stops, 300% bg, 2s) |
+| `.ripple-effect` | Onde de clic |
+| `.card-hover` | Hover translateY(-3px) + ombre |
 
 ---
 
@@ -251,11 +349,60 @@ Badges : 10 badges (Premiers pas, Collectionneur, Expert quiz, etc.)
 - [x] **Phase 4** — Gamification : XP, badges, classements, chat cloisonné par niveau
 - [x] **Phase 5** — Finalisation : profil joueur/non-joueur, upload Cloudinary, admin amélioré, vérification email
 - [x] **Nettoyage** (05/07/2026) : suppression SAUVEGARDE/, node_modules/, .next/, uploads/, tsconfig.tsbuildinfo
-- [x] **Refonte design (05/07/2026)** : toutes les pages refaites (landing, auth, dashboard, admin, profil, classement, chat, quiz liste, quiz [id], quiz create, quiz results) + Logo + Navbar + ResourceCard + UploadModal
-- [x] **Refonte style premium QClay (05/07/2026 soir)** : FloatingElements (livres/chiffres/diplômes animés en fond), bento grid, glows, mega-title, orbes, stat cards, landing refaite, dashboard refait, globals.css enrichi
-- [x] **Finalisation landing (05/07/2026 soir)** : Hero remplacé — image Gemini (`vozoydvozoydvozo.png`) avec animations d'entrée, dégradé cinématographique, barre d'info superposée ; Navbar affiche désormais le logo sur la page d'accueil (au lieu de `return null`)
-- [x] **Phase 6 — Fondations (07/07/2026)** : Git + GitHub (remote, 5 commits), MySQL Aiven (migration, seed, SQLite supprimée), Tests Vitest (18 tests, 3 fichiers), Rate limiting, validation Zod, security headers, timer quiz serveur
+- [x] **Refonte design** (05/07/2026) : toutes les pages refaites (glassmorphisme, logo, navbar, ResourceCard, UploadModal)
+- [x] **Refonte style premium QClay** (05/07/2026) : FloatingElements, bento grid, glows, mega-title, orbes, stat cards, globals.css enrichi
+- [x] **Finalisation landing** (05/07/2026) : Hero image Gemini, animations d'entrée, gradient cinématographique
+- [x] **Phase 6 — Fondations prod** (07/07/2026) : Git + GitHub, MySQL Aiven, Tests Vitest (18), Rate limiting, Zod, security headers, timer quiz serveur
+- [x] **Phase 6.5 — Animations premium** (18/07/2026) : voir détail ci-dessous
 - [ ] **Phase 7** — Production (Paiement, déploiement final, légal, monitoring) : voir `ROADMAP-PRODUCTION.md`
+
+### Détail Phase 6.5 — Animations premium (18/07/2026) :
+
+**Landing page (`src/app/page.tsx`) :**
+- **Text Scramble** : le mot clé du hero défile entre "réussir", "apprendre", "progresser", "briller", "grandir" avec remplacement caractère par caractère (glitch JS vanilla, pas de lib)
+- **Magnetic CTA** : les boutons "Commencer" et "Se connecter" suivent la souris (offset 0.15x calculé via onMouseMove)
+- **BentoCard3D** : composant réutilisable — tilt 3D (perspective 800px, rotation X/Y basée sur position souris), glare radial gradient localisé, border light qui suit le curseur
+- **AnimatedCounter** amélioré : easing cubic `1 - (1-t)^3` au lieu de linéaire
+- **Easing unifié** : `[0.25, 0.46, 0.45, 0.94]` partout pour cohérence
+
+**Classement (`src/app/(app)/classement/page.tsx`) :**
+- **Podium spring animations** : colonnes montent depuis le bas avec spring (stiffness 260, damping 20), avatars et médailles entrent avec delays séquentiels
+- **Medal glow pulse** : médaille d'or a un ananneau qui pulse (scale + opacity en boucle)
+- **Crown ring** : le 1er place a un anneau animé autour de l'avatar (border pulse)
+- **AnimatedXP** : compteur animé par rang avec easing cubic et delay staggeré
+- **Tab indicator animé** : barre gradient (orange→vert) slide entre "Élèves" et "Par classe" avec spring layout
+- **List items** : entrée latérale `x: -15 → 0` au lieu de vertical
+
+**Dashboard (`src/app/dashboard/page.tsx`) :**
+- **AnimatedNumber** : chaque StatCard compte de 0 à la valeur avec easing cubic (via IntersectionObserver)
+- **Stat card icons** : micro-hover `scale(1.1) + rotate(5deg)` via Framer Motion
+- **XP progress bar** : animation de largeur Framer Motion (1.2s, ease custom)
+- **Level badge** : entrée spring (stiffness 300, damping 15) pour le numéro
+- **Tab indicator** : barre gradient animée entre onglets avec spring layout (stiffness 400, damping 28)
+- **Skeleton amélioré** : shimmers premium avec layout avatar + titre + sous-titre, entrée staggerée
+- **Empty state** : icône qui flotte (y: 0 → -6 → 0) en boucle infinie
+- **Quick action icons** : micro-hover scale + rotate
+- **Bouton Publier** : whileHover scale(1.03) + whileTap scale(0.97)
+
+**Navbar (`src/components/Navbar.tsx`) :**
+- **Scroll-reactive glass** : backdrop-filter monte de 0 à 24px et opacité du fond monte progressivement quand on scrolle (passif, sans RAF)
+- **Active link indicator** : petit point gradient (orange → vert) qui suit le lien actif via `layoutId` Framer Motion (spring entre les liens)
+- **Avatar button** : whileHover scale(1.05) + whileTap scale(0.95)
+- **XP badge** : entrée scale au montage
+- **Gestion inline styles** : la navbar gère son glass via style inline (pas de classe CSS statique) pour permettre la transition scroll
+
+**CSS (`src/app/globals.css`) :**
+- **`.bento-card-3d`** : nouveau composant glass + preserve-3d + glare + border-light
+- **`.bento-card-glare`** : overlay radial-gradient qui suit la souris
+- **`.bento-card-border-light`** : anneau lumineux localisé au curseur
+- **`.skeleton` amélioré** : shimmer premium 5 stops, bg-size 300%, animation 2s
+- **`@keyframes podium-rise`** : colonne du podium qui monte avec spring bounce
+- **`@keyframes medal-glow`** : pulse lumineux drop-shadow sur médaille
+- **`@keyframes counter-glow`** : halo subtil sur compteurs
+- **`.tab-indicator`** : barre gradient animée (transition left/width 0.35s)
+- **`.navbar-glass`** : transition backdrop-filter + backgroundColor
+- **`.active-link-dot`** : point indicateur lien actif (scaleX animation)
+- **`.stat-glow`** : animation counter-glow sur les valeurs de stats
 
 ---
 
@@ -279,8 +426,17 @@ Badges : 10 badges (Premiers pas, Collectionneur, Expert quiz, etc.)
 16. **Validation Zod** — tous les inputs vérifiés côté serveur via `src/lib/validation.ts`
 17. **Security headers** — configurés via Next.js dans `next.config.ts`
 18. **Tests Vitest** — 18 tests unitaires (xp, cloudinary, rate-limit)
-19. **GitHub** — dépôt `kamyastro2000-stack/shareschool-ci`, 5 commits, branch `main`
-20. **Déploiement Vercel** — en ligne, middleware optimisé pour Vercel
+19. **GitHub** — dépôt `kamyastro2000-stack/shareschool-ci`, 6 commits, branch `main`
+20. **Déploiement Vercel** — en ligne, webhook GitHub auto-deploy
+21. **Text Scramble** — JS vanilla + requestAnimationFrame, pas de lib externe (effet glitch caractère par caractère)
+22. **Magnetic CTA** — offset `0.15x` du vecteur souris → translate, léger et 60fps
+23. **BentoCard3D** — `perspective(800px)` + `rotateX/Y` basés sur position souris, glare radial-gradient, border light animée
+24. **Podium spring** — Framer Motion spring `stiffness: 260, damping: 20` pour bounce naturel
+25. **Scroll-reactive navbar** — `scrollY / 120 → [0, 1]` mappe backdrop-filter 0→24px + opacité bg, listener passif
+26. **Tab indicator** — `layoutId` Framer Motion spring pour transition fluide entre onglets
+27. **Easing unifié** — `[0.25, 0.46, 0.45, 0.94]` (custom cubic-bezier) partout pour cohérence visuelle
+28. **AnimatedCounter/Eased** — easing `1 - (1-t)^3` (ease-out cubic) pour compteurs qui ralentissent à l'approche de la cible
+29. **IntersectionObserver** — déclenche les animations de compteur uniquement quand visibles (pas de gaspillage CPU)
 
 ---
 
@@ -381,6 +537,12 @@ Page : `src/app/(app)/classement/page.tsx`
 - **Rang utilisateur** : affiché dans sa position dans le classement
 - **Exclusion** : ADMIN et TEACHER exclus du classement
 
+### Animations :
+- **Podium** : colonnes montent avec spring bounce, médailles entrent par scale + rotate, avatars entrent par scale spring, 1er place a un glow pulse + crown ring
+- **AnimatedXP** : compteur animé par rang (easing cubic, delay staggeré)
+- **Tab indicator** : barre gradient slide entre onglets avec spring layout
+- **List items** : entrée latérale x: -15 → 0 avec stagger
+
 ### API :
 - `GET /api/leaderboard` — classement individuel (avec recherche et rang)
 - `GET /api/leaderboard/classes` — classement par classe
@@ -433,11 +595,12 @@ Voir le fichier complet : `ROADMAP-PRODUCTION.md`
 - [x] **Fondations** : Git + GitHub, MySQL (Aiven), Tests (18 tests)
 - [x] **Sécurité** : Rate limiting, validation Zod, security headers, timer quiz serveur
 - [x] **Mise en ligne** : Déploiement Vercel effectué
+- [x] **Animations premium** : Text scramble, magnetic CTA, 3D bento, podium spring, animated counters, scroll-reactive navbar
 - [ ] **Paiement** : Stripe, abonnements, dashboard client
 - [ ] **Légal** : CGU/CGV, RGPD, cookies, mentions légales
 - [ ] **Monitoring** : Sentry, Analytics, logs, favicon, SEO
 - [ ] **CI/CD** : GitHub Actions, backup BDD
-- [ ] **Finitions** : Landing page pro, logo, 404, accessibilité
+- [ ] **Finitions** : 404, accessibilité, responsive tests
 
 ---
 
@@ -450,7 +613,7 @@ Voir le fichier complet : `ROADMAP-PRODUCTION.md`
 - `clsx` + `tailwind-merge` installés — utiliser `cn()` de `@/lib/utils` pour les classNames Tailwind
 - Les types NextAuth sont complétés (`auth-types.ts`) — plus besoin de `as any` dans les callbacks
 - Le build compile 38 routes sans erreur
-- Le style QClay a été appliqué : bento grid, glows, mega-title, FloatingElements (30 icônes scolaires animées), stat cards, premium cards, orbes
+- Le style QClay a été appliqué : bento grid, glows, mega-title, FloatingElements (35 icônes scolaires animées), stat cards, premium cards, orbes
 - `FloatingElements.tsx` utilise 5 keyframes CSS (`fe-float-0` à `fe-float-4`) pour des mouvements variés des icônes en fond
 - Le layout intègre `FloatingElements` dans le body avec `position: fixed; pointer-events: none`
 - Le temps des quiz est vérifié côté serveur au submit (timer serveur actif)
@@ -466,8 +629,14 @@ Voir le fichier complet : `ROADMAP-PRODUCTION.md`
 - Mode simulation : si `RESEND_API_KEY` est manquant ou `re_xxxxx`, les emails sont loggés dans la console
 - En dev, le code de vérification est aussi retourné dans la réponse API (`devCode`)
 - Base de données : MySQL Aiven (plus de SQLite)
-- Déploiement : Vercel (automatique depuis GitHub)
+- Déploiement : Vercel (auto-deploy depuis GitHub)
 - GitHub : `https://github.com/kamyastro2000-stack/shareschool-ci`
+- **Aucune dépendance externe ajoutée** pour les animations — tout est Framer Motion (déjà installé) + CSS + JS vanilla
+- **Easing unifié** `[0.25, 0.46, 0.45, 0.94]` partout pour cohérence visuelle
+- **Scroll-reactive navbar** gère son glass via `style` inline (pas de classe CSS statique) pour transition fluide
+- **BentoCard3D** est un composant interne à `page.tsx` (pas dans `/components/`) — à extraire si réutilisé ailleurs
+- **Text Scramble** utilise un vocabulaire de 5 mots et boucle en continu
+- **Podium animations** : spring `stiffness: 260, damping: 20` pour bounce naturel, delays séquentiels (0s, 0.15s, 0.3s)
 
 ---
 
@@ -496,7 +665,7 @@ D:\Mon Projet\shareschool_Projet\
     │   ├── cloudinary.ts          # Upload/delete Cloudinary
     │   ├── xp.ts                  # Système XP + badges (awardXP, getLevel, etc.)
     │   ├── xp-client.ts           # Utilitaires XP côté client
-    │   ├── utils.ts               # Utilitaires (cn, etc.)
+    │   ├── utils.ts               # Utilitaires (cn, getGreeting, etc.)
     │   ├── validation.ts          # Schémas Zod (email, password, register, login, MIME types)
     │   ├── rate-limit.ts          # Rate limiting (connexion, inscription, upload)
     │   └── email.tsx              # Service email centralisé (Resend + React Email)
@@ -505,36 +674,37 @@ D:\Mon Projet\shareschool_Projet\
     │   ├── welcome.tsx            # Template bienvenue après activation
     │   └── resource-notification.tsx # Template notification approbation/refus
     ├── components/
-    │   ├── Navbar.tsx
-    │   ├── Providers.tsx
-    │   ├── PageTransition.tsx
-    │   ├── ResourceCard.tsx
-    │   ├── UploadModal.tsx
-    │   ├── LoadingSpinner.tsx
-    │   ├── ErrorMessage.tsx
-    │   ├── SuccessMessage.tsx
-    │   └── FloatingElements.tsx     # 30 icônes scolaires animées en fond
+    │   ├── Logo.tsx               # Logo SVG (graduation + dégradé CI)
+    │   ├── Navbar.tsx             # Nav scroll-reactive glass + active link indicator
+    │   ├── Providers.tsx          # SessionProvider
+    │   ├── PageTransition.tsx     # Framer Motion page transitions
+    │   ├── ResourceCard.tsx       # Carte ressource (glass, badges, validation)
+    │   ├── UploadModal.tsx        # Modal upload drag & drop
+    │   ├── LoadingSpinner.tsx     # Spinner de chargement
+    │   ├── ErrorMessage.tsx       # Message d'erreur
+    │   ├── SuccessMessage.tsx     # Message de succès
+    │   └── FloatingElements.tsx   # 35 icônes scolaires animées en fond
     └── app/
-        ├── globals.css            # Design system
-        ├── layout.tsx             # Layout racine
-        ├── page.tsx               # Landing page
+        ├── globals.css            # Design system (~1250 lignes)
+        ├── layout.tsx             # Layout racine (FloatingElements + Providers + Navbar)
+        ├── page.tsx               # Landing page (ScrambleText, MagneticButton, BentoCard3D, AnimatedCounter)
         ├── (auth)/
         │   ├── login/
         │   │   ├── page.tsx
-        │   │   └── LoginForm.tsx
+        │   │   └── LoginForm.tsx  # Formulaire login glass
         │   ├── register/page.tsx
         │   └── verify-email/page.tsx
-        ├── dashboard/page.tsx
-        ├── admin/page.tsx
+        ├── dashboard/page.tsx     # Dashboard (AnimatedNumber, stat cards, tab indicator, skeleton amélioré)
+        ├── admin/page.tsx         # Admin (stats, users, resources, registry)
         ├── quiz/
-        │   ├── page.tsx
-        │   ├── [id]/page.tsx
-        │   ├── create/page.tsx
-        │   └── results/page.tsx
+        │   ├── page.tsx           # Liste quiz
+        │   ├── [id]/page.tsx      # Quiz détail + passage
+        │   ├── create/page.tsx    # Création quiz
+        │   └── results/page.tsx   # Résultats
         ├── (app)/
-        │   ├── profil/page.tsx
-        │   ├── classement/page.tsx
-        │   └── chat/page.tsx
+        │   ├── profil/page.tsx    # Profil joueur/non-joueur
+        │   ├── classement/page.tsx # Podium spring + medal glow + AnimatedXP + tab indicator
+        │   └── chat/page.tsx      # Chat par niveau
         └── api/
             ├── auth/[...nextauth]/route.ts
             ├── register/route.ts
