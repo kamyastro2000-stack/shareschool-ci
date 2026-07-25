@@ -23,11 +23,11 @@ export default function VerificationCodeEmail({
     <Html>
       <Preview>Ton code de vérification ShareSchool</Preview>
       <Tailwind>
-        <Body className="bg-[#0f172a] font-sans">
+        <Body className="bg-[#0f1a2e] font-sans">
           <Container className="mx-auto py-12 px-4 max-w-[480px]">
             <Section className="bg-[#1e293b] rounded-2xl p-8 border border-[#334155] shadow-2xl">
               <Section className="text-center mb-6">
-                <Section className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#6366f1] to-[#f97316] flex items-center justify-center mx-auto mb-4">
+                <Section className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#f77f00] to-[#009e60] flex items-center justify-center mx-auto mb-4">
                   <Text className="text-white font-bold text-xl m-0">SC</Text>
                 </Section>
                 <Heading className="text-2xl font-bold text-white m-0">
@@ -43,7 +43,7 @@ export default function VerificationCodeEmail({
                 Utilise le code ci-dessous pour activer ton compte ShareSchool :
               </Text>
 
-              <Section className="bg-[#0f172a] rounded-xl py-6 px-4 text-center mb-6 border border-[#334155]">
+              <Section className="bg-[#0f1a2e] rounded-xl py-6 px-4 text-center mb-6 border border-[#334155]">
                 <Text className="text-[40px] font-bold tracking-[10px] text-white font-mono m-0 select-all">
                   {code}
                 </Text>

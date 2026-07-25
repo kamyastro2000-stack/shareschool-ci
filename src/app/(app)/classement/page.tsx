@@ -65,8 +65,8 @@ function AnimatedXP({ value, delay = 0 }: { value: number; delay?: number }) {
 function Podium({ leaders }: { leaders: Leader[] }) {
   const top3 = leaders.slice(0, 3);
   const podiumPositions = [
-    { rank: 2, height: "h-24", medalBg: "from-[#cd7f32]/30 to-[#cd7f32]/10", borderMedal: "border-[#cd7f32]/30" },
-    { rank: 0, height: "h-36", medalBg: "from-[#c9a84c]/40 to-[#c9a84c]/10", borderMedal: "border-[#c9a84c]/40" },
+    { rank: 2, height: "h-24", medalBg: "from-[#009e60]/30 to-[#009e60]/10", borderMedal: "border-[#009e60]/30" },
+    { rank: 0, height: "h-36", medalBg: "from-[#f77f00]/40 to-[#f77f00]/10", borderMedal: "border-[#f77f00]/40" },
     { rank: 1, height: "h-20", medalBg: "from-[#9ca3af]/30 to-[#9ca3af]/10", borderMedal: "border-[#9ca3af]/30" },
   ];
   const medals = ["🥇", "🥈", "🥉"];
@@ -108,7 +108,7 @@ function Podium({ leaders }: { leaders: Leader[] }) {
               {user.firstName[0]}{user.lastName[0]}
               {isFirst && (
                 <motion.div
-                  className="absolute inset-0 rounded-2xl border-2 border-[#c9a84c]/50"
+                  className="absolute inset-0 rounded-2xl border-2 border-[#f77f00]/50"
                   animate={{ scale: [1, 1.08, 1], opacity: [0.5, 0.2, 0.5] }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                 />

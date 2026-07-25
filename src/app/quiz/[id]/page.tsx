@@ -136,7 +136,7 @@ export default function QuizTakePage() {
               <div className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center relative"
                 style={{ background: result.percentage >= 50 ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)" }}>
                 <div className="absolute inset-0 rounded-full animate-pulse-glow" />
-                <span className="text-4xl font-bold" style={{ color: result.percentage >= 50 ? "#22c55e" : "#ef4444" }}>
+                <span className="text-4xl font-bold" style={{ color: result.percentage >= 50 ? "#009e60" : "#ef4444" }}>
                   {result.percentage}%
                 </span>
               </div>
@@ -145,7 +145,7 @@ export default function QuizTakePage() {
               </h2>
               <p className="text-white/60 text-lg mb-4">{result.score} / {result.maxScore} bonnes réponses</p>
               <div className="progress-bar max-w-xs mx-auto mb-6">
-                <div className="progress-bar-fill" style={{ width: `${result.percentage}%`, background: result.percentage >= 50 ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #ef4444, #dc2626)" }} />
+                <div className="progress-bar-fill" style={{ width: `${result.percentage}%`, background: result.percentage >= 50 ? "linear-gradient(135deg, #009e60, #007a4b)" : "linear-gradient(135deg, #ef4444, #dc2626)" }} />
               </div>
               <button onClick={() => router.push("/quiz")}
                 className="gradient-btn px-8 py-3 rounded-xl text-white font-semibold">

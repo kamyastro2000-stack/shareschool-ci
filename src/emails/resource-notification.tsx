@@ -33,7 +33,7 @@ export default function ResourceNotificationEmail({
         Ressource {isApproved ? "approuvée" : "refusée"} — {resourceTitle}
       </Preview>
       <Tailwind>
-        <Body className="bg-[#0f172a] font-sans">
+        <Body className="bg-[#0f1a2e] font-sans">
           <Container className="mx-auto py-12 px-4 max-w-[480px]">
             <Section
               className="bg-[#1e293b] rounded-2xl p-8 border border-[#334155] shadow-2xl"
@@ -42,7 +42,7 @@ export default function ResourceNotificationEmail({
                 <Section
                   className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 ${
                     isApproved
-                      ? "bg-gradient-to-br from-[#22c55e] to-[#16a34a]"
+                      ? "bg-gradient-to-br from-[#009e60] to-[#007a4b]"
                       : "bg-gradient-to-br from-[#ef4444] to-[#dc2626]"
                   }`}
                 >
@@ -66,7 +66,7 @@ export default function ResourceNotificationEmail({
                 </Text>{" "}
                 a été{" "}
                 {isApproved ? (
-                  <Text className="text-[#22c55e] font-semibold inline">
+                  <Text className="text-[#009e60] font-semibold inline">
                     approuvée
                   </Text>
                 ) : (
@@ -78,11 +78,11 @@ export default function ResourceNotificationEmail({
               </Text>
 
               {comment && (
-                <Section className="bg-[#0f172a] rounded-xl p-4 mb-6 border border-[#334155]">
+                <Section className="bg-[#0f1a2e] rounded-xl p-4 mb-6 border border-[#334155]">
                   <Text className="text-[#64748b] text-xs uppercase tracking-wider mb-2">
                     Commentaire du validateur
                   </Text>
-                  <Text className="text-[#cbd5e1] text-sm m-0 italic">
+                  <Text className="text-[#94a3b8] text-sm m-0 italic">
                     &ldquo;{comment}&rdquo;
                   </Text>
                 </Section>
@@ -94,7 +94,7 @@ export default function ResourceNotificationEmail({
                     href={baseUrl + "/dashboard"}
                     className="inline-block px-8 py-4 rounded-xl text-white font-semibold text-base no-underline"
                     style={{
-                      background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                      background: "linear-gradient(135deg, #f77f00, #009e60)",
                     }}
                   >
                     Voir mes ressources

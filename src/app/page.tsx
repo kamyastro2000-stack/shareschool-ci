@@ -156,7 +156,7 @@ function BentoCard3D({ children, className, gradient }: { children: React.ReactN
       <div
         className="bento-card-glare"
         style={{
-          background: `radial-gradient(600px circle at ${tilt.mx}% ${tilt.my}%, ${gradient || "rgba(30,58,95,0.25)"}, transparent 40%)`,
+          background: `radial-gradient(600px circle at ${tilt.mx}% ${tilt.my}%, ${gradient || "rgba(0,158,96,0.25)"}, transparent 40%)`,
           opacity: tilt.glare,
         }}
       />
@@ -315,7 +315,7 @@ export default function Home() {
 
               <motion.div variants={fadeUp} className="flex items-center gap-6 mt-8 justify-center">
                 <div className="flex -space-x-2">
-                  {["#f77f00", "#009e60", "#1e3a5f", "#c9a84c"].map((c, i) => (
+                  {["#f77f00", "#009e60", "#ffffff", "#f77f00"].map((c, i) => (
                     <div key={i} className="w-8 h-8 rounded-full border-2 border-[#080c14]" style={{ background: c }} />
                   ))}
                 </div>
@@ -431,7 +431,7 @@ export default function Home() {
                 <motion.div
                   key={i}
                   variants={fadeUp}
-                  className={`bento-card text-center bg-gradient-to-b ${["from-[#f77f00]/20", "from-[#009e60]/20", "from-primary/20", "from-accent/20"][i % 4]} to-transparent`}
+                  className={`bento-card text-center bg-gradient-to-b ${["from-[#f77f00]/20", "from-[#009e60]/20", "from-[#009e60]/20", "from-[#f77f00]/20"][i % 4]} to-transparent`}
                 >
                   <div className="w-14 h-14 rounded-2xl glass flex items-center justify-center mx-auto mb-4">
                     <svg className="w-7 h-7 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -468,7 +468,7 @@ export default function Home() {
 
           <div className="relative">
             {/* Connector line */}
-            <div className="hidden sm:block absolute top-1/2 left-[16.66%] right-[16.66%] h-0.5 bg-gradient-to-r from-[#f77f00] via-[#009e60] to-[#1e3a5f] opacity-20 -translate-y-1/2" />
+            <div className="hidden sm:block absolute top-1/2 left-[16.66%] right-[16.66%] h-0.5 bg-gradient-to-r from-[#f77f00] via-[#009e60] to-[#ffffff] opacity-20 -translate-y-1/2" />
 
             <div className="grid sm:grid-cols-3 gap-6">
               {steps.map((item, i) => (
@@ -502,7 +502,7 @@ export default function Home() {
             variants={stagger}
             className="premium-card text-center relative overflow-hidden gradient-border-ci"
             style={{
-              background: "linear-gradient(135deg, rgba(247,127,0,0.06), rgba(0,158,96,0.04), rgba(30,58,95,0.04))",
+              background: "linear-gradient(135deg, rgba(247,127,0,0.06), rgba(0,158,96,0.04), rgba(0,158,96,0.04))",
             }}
           >
             {/* CTA orbs */}
@@ -555,7 +555,7 @@ export default function Home() {
                 Mutualisons nos connaissances pour une éducation de qualité.
               </p>
               <div className="flex items-center gap-3 mt-5">
-                {["#f77f00", "#009e60", "#1e3a5f", "#c9a84c"].map((c, i) => (
+                {["#f77f00", "#009e60", "#ffffff", "#f77f00"].map((c, i) => (
                   <div key={i} className="w-8 h-8 rounded-lg glass flex items-center justify-center cursor-pointer hover:bg-white/10 transition-all hover:border-primary/30">
                     <svg className="w-4 h-4 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />

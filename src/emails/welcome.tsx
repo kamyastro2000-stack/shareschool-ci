@@ -28,11 +28,11 @@ export default function WelcomeEmail({
     <Html>
       <Preview>Bienvenue sur ShareSchool CI, {firstName} !</Preview>
       <Tailwind>
-        <Body className="bg-[#0f172a] font-sans">
+        <Body className="bg-[#0f1a2e] font-sans">
           <Container className="mx-auto py-12 px-4 max-w-[480px]">
             <Section className="bg-[#1e293b] rounded-2xl p-8 border border-[#334155] shadow-2xl">
               <Section className="text-center mb-6">
-                <Section className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#6366f1] to-[#f97316] flex items-center justify-center mx-auto mb-4">
+                <Section className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#f77f00] to-[#009e60] flex items-center justify-center mx-auto mb-4">
                   <Text className="text-white font-bold text-xl m-0">SC</Text>
                 </Section>
                 <Heading className="text-2xl font-bold text-white m-0">
@@ -68,8 +68,8 @@ export default function WelcomeEmail({
                   "⭐ Gagne de l'XP et débloque des badges",
                   "💬 Discute avec tes camarades dans le chat",
                 ].map((item, i) => (
-                  <Section key={i} className="bg-[#0f172a] rounded-lg px-4 py-3 border border-[#334155]">
-                    <Text className="text-[#cbd5e1] text-sm m-0">{item}</Text>
+                  <Section key={i} className="bg-[#0f1a2e] rounded-lg px-4 py-3 border border-[#334155]">
+                    <Text className="text-[#94a3b8] text-sm m-0">{item}</Text>
                   </Section>
                 ))}
               </Section>
@@ -79,7 +79,7 @@ export default function WelcomeEmail({
                   href={baseUrl + "/dashboard"}
                   className="inline-block px-8 py-4 rounded-xl text-white font-semibold text-base no-underline"
                   style={{
-                    background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                    background: "linear-gradient(135deg, #f77f00, #009e60)",
                   }}
                 >
                   Accéder à mon tableau de bord
