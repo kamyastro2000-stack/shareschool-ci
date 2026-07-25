@@ -266,12 +266,12 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="flex justify-center">
             <motion.div
               initial="hidden"
               animate="visible"
               variants={stagger}
-              className="text-center lg:text-left"
+              className="text-center max-w-3xl"
             >
               <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-white/60 mb-6 border border-[#f77f00]/20">
                 <span className="w-2 h-2 rounded-full bg-[#f77f00] animate-pulse" />
@@ -327,52 +327,6 @@ export default function Home() {
               </motion.div>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="hidden lg:flex items-center justify-center"
-            >
-              <div className="relative w-full max-w-lg">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#f77f00]/15 via-[#009e60]/10 to-transparent rounded-3xl blur-3xl" />
-                <div className="relative overflow-hidden rounded-2xl gradient-border-ci">
-                  <motion.img
-                    src="/images/Gemini_Generated_Image_vozoydvozoydvozo.png"
-                    alt="Élèves ivoiriens en classe"
-                    className="w-full h-auto object-cover"
-                    initial={{ opacity: 0, scale: 1.05 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  />
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-t from-[#080c14] via-transparent to-transparent"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.8 }}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 1.1 }}
-                    className="absolute bottom-0 left-0 right-0 p-5 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                      <span className="text-xs text-white/70">
-                        {publicStats.establishments > 0
-                          ? `Côte d'Ivoire · ${publicStats.establishments} école${publicStats.establishments > 1 ? "s" : ""} connectée${publicStats.establishments > 1 ? "s" : ""}`
-                          : "Côte d'Ivoire · Plateforme éducative"}
-                      </span>
-                    </div>
-                    <div className="flex -space-x-2">
-                      {["#f77f00", "#009e60", "#1e3a5f", "#c9a84c"].map((c, i) => (
-                        <div key={i} className="w-6 h-6 rounded-full border-2 border-[#080c14]" style={{ background: c }} />
-                      ))}
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
-            </motion.div>
           </div>
         </div>
       </section>
